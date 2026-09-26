@@ -2807,6 +2807,40 @@ function desenharMedidas(imgEl, r) {
   img.src = imgEl.src;
 }
 
+function calcularPupilometriaGeometrica(r, referenciaValor, referenciaTipo){
+  const n=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null;};
+  const ref=n(referenciaValor);
+  const xOD=n(r.pupilOD_x), yOD=n(r.pupilOD_y), xOE=n(r.pupilOE_x), yOE=n(r.pupilOE_y);
+  const od1=n(r.lensOD_x1), od2=n(r.lensOD_x2), oe1=n(r.lensOE_x1), oe2=n(r.lensOE_x2);
+  const top=n(r.lensTop_y), bot=n(r.lensBot_y);
+  const vals=[xOD,yOD,xOE,yOE,od1,od2,oe1,oe2,top,bot];
+  if(!(ref>0) || vals.some(v=>v===null||v<0||v>1)) return null;
+  const largOD=Math.abs(od2-od1), largOE=Math.abs(oe2-oe1);
+  const altura=Math.abs(bot-top);
+  const ponte=Math.abs(oe1-od2);
+  const larguraTotal=Math.max(od2,oe2)-Math.min(od1,oe1);
+  let unidadeRef=null;
+  if(referenciaTipo==='largura_total') unidadeRef=larguraTotal;
+  else if(referenciaTipo==='largura_lente') unidadeRef=(largOD+largOE)/2;
+  else if(referenciaTipo==='ponte') unidadeRef=ponte;
+  else if(referenciaTipo==='altura_lente') unidadeRef=altura;
+  if(!(unidadeRef>0)) return null;
+  const mmPorUnidade=ref/unidadeRef;
+  const centroPonte=(od2+oe1)/2;
+  const round=v=>Math.round(v*100)/100;
+  return {
+    dpOD:round(Math.abs(centroPonte-xOD)*mmPorUnidade),
+    dpOE:round(Math.abs(xOE-centroPonte)*mmPorUnidade),
+    dpTotal:round(Math.abs(xOE-xOD)*mmPorUnidade),
+    coOD:round(Math.abs(bot-yOD)*mmPorUnidade),
+    coOE:round(Math.abs(bot-yOE)*mmPorUnidade),
+    larguraArmacao:round(larguraTotal*mmPorUnidade),
+    alturaLente:round(altura*mmPorUnidade),
+    ponteArmacao:round(ponte*mmPorUnidade),
+    escalaUsada:round(mmPorUnidade)
+  };
+}
+
 async function analisarFotoIA(){
   var base64Full=document.getElementById('rf_foto_hidden')&&document.getElementById('rf_foto_hidden').value;
   if(!base64Full){showToast('Nenhuma foto selecionada','error');return;}
@@ -2818,12 +2852,14 @@ async function analisarFotoIA(){
     var rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
     var rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
     var r=await chamarIABackend('pupilometria',base64Full,{referenciaValor:rv,referenciaTipo:rt});
-    var refNum=Number(String(rv||'').replace(',','.'));
-    var escalaConfiavel=Number.isFinite(refNum)&&refNum>0;
-    // Sem referência física informada, a geometria pode ser exibida, mas nenhum mm da IA vira medida final.
-    if(!escalaConfiavel){
+    var medidas=calcularPupilometriaGeometrica(r,rv,rt);
+    var escalaConfiavel=!!medidas;
+    // A IA fornece os pontos. Os milímetros são calculados localmente a partir da referência física.
+    if(medidas){
+      Object.assign(r,medidas);
+    }else{
       r.dpOD=''; r.dpOE=''; r.dpTotal=''; r.coOD=''; r.coOE='';
-      r.larguraArmacao=''; r.alturaLente=''; r.ponteArmacao='';
+      r.larguraArmacao=''; r.alturaLente=''; r.ponteArmacao=''; r.escalaUsada='';
     }
     if(escalaConfiavel&&r.dpOD){var el=document.getElementById('rf_dpD');if(el)el.value=r.dpOD;}
     if(escalaConfiavel&&r.dpOE){var el=document.getElementById('rf_dpE');if(el)el.value=r.dpOE;}
