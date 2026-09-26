@@ -2841,6 +2841,38 @@ function calcularPupilometriaGeometrica(r, referenciaValor, referenciaTipo){
   };
 }
 
+function validarCapturaPupilometria(r){
+  const n=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null;};
+  const xOD=n(r.pupilOD_x), yOD=n(r.pupilOD_y), xOE=n(r.pupilOE_x), yOE=n(r.pupilOE_y);
+  const od1=n(r.lensOD_x1), od2=n(r.lensOD_x2), oe1=n(r.lensOE_x1), oe2=n(r.lensOE_x2);
+  const top=n(r.lensTop_y), bot=n(r.lensBot_y);
+  const vals=[xOD,yOD,xOE,yOE,od1,od2,oe1,oe2,top,bot];
+  const problemas=[];
+  if(vals.some(v=>v===null||v<0||v>1)){
+    problemas.push('Pontos geométricos incompletos ou fora da imagem.');
+    return {ok:false,problemas};
+  }
+  const distPup=Math.abs(xOE-xOD);
+  const largOD=Math.abs(od2-od1), largOE=Math.abs(oe2-oe1);
+  const altura=Math.abs(bot-top);
+  const desnivel=Math.abs(yOD-yOE);
+  const assimLentes=Math.abs(largOD-largOE)/Math.max(largOD,largOE,0.0001);
+  const centroPup=(xOD+xOE)/2;
+  const centroArm=(Math.min(od1,oe1)+Math.max(od2,oe2))/2;
+  const descentralizacao=Math.abs(centroPup-centroArm);
+
+  if(distPup<0.12||distPup>0.55) problemas.push('Distância entre pupilas incompatível com uma captura frontal confiável.');
+  if(altura<0.08) problemas.push('Altura das lentes insuficiente para calibração.');
+  if(desnivel>0.035) problemas.push('Cabeça ou câmera inclinada: olhos fora do mesmo nível.');
+  if(assimLentes>0.18) problemas.push('Perspectiva excessiva: as lentes aparecem com larguras muito diferentes.');
+  if(descentralizacao>0.07) problemas.push('Rosto/armação muito descentralizados na captura.');
+  if(!(xOD>od1&&xOD<od2)) problemas.push('Pupila OD detectada fora dos limites da lente.');
+  if(!(xOE>oe1&&xOE<oe2)) problemas.push('Pupila OE detectada fora dos limites da lente.');
+  if(!(yOD>top&&yOD<bot&&yOE>top&&yOE<bot)) problemas.push('Centro pupilar detectado fora da altura útil das lentes.');
+
+  return {ok:problemas.length===0,problemas};
+}
+
 async function analisarFotoIA(){
   var base64Full=document.getElementById('rf_foto_hidden')&&document.getElementById('rf_foto_hidden').value;
   if(!base64Full){showToast('Nenhuma foto selecionada','error');return;}
@@ -2852,7 +2884,8 @@ async function analisarFotoIA(){
     var rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
     var rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
     var r=await chamarIABackend('pupilometria',base64Full,{referenciaValor:rv,referenciaTipo:rt});
-    var medidas=calcularPupilometriaGeometrica(r,rv,rt);
+    var qualidade=validarCapturaPupilometria(r);
+    var medidas=qualidade.ok?calcularPupilometriaGeometrica(r,rv,rt):null;
     var escalaConfiavel=!!medidas;
     // A IA fornece os pontos. Os milímetros são calculados localmente a partir da referência física.
     if(medidas){
@@ -2880,7 +2913,8 @@ async function analisarFotoIA(){
       +itens.map(function(it){return '<div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--dim)">'+it[0]+'</div><div style="font-size:14px;font-weight:800;color:'+it[2]+'">'+it[1]+'</div></div>';}).join('')
       +'</div><div style="padding:8px;background:'+cc+'15;border:1px solid '+cc+'40;border-radius:8px;font-size:12px;color:'+cc+'">'
       +(r.compatibilidade||'---')+': '+(r.observacoes||'')+'</div>'
-      +'<div style="font-size:10px;color:var(--dim);margin-top:6px">'+(escalaConfiavel?'* Medição assistida: confirme antes de finalizar a receita.':'* Sem referência física: pontos detectados apenas para conferência visual; medidas em mm não foram validadas.')+'</div></div>';
+      +(qualidade.ok?'':'<div style="margin-top:8px;padding:8px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);border-radius:8px;color:#f59e0b;font-size:11px"><strong>Refaça a captura:</strong> '+qualidade.problemas.map(esc).join(' ')+'</div>')
+      +'<div style="font-size:10px;color:var(--dim);margin-top:6px">'+(escalaConfiavel?'* Medição assistida: captura aprovada pelos controles geométricos. Confirme antes de finalizar a receita.':qualidade.ok?'* Captura aprovada, porém sem referência física válida: medidas em mm não foram calculadas.':'* Captura reprovada pelos controles geométricos: nenhuma medida em mm foi aceita.')+'</div></div>';
     showToast('Analise concluida!','success');
   }catch(err){
     console.error('Erro IA:',err);
