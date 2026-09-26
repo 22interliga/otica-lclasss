@@ -220,6 +220,7 @@ input,select,textarea{font-size:16px!important}
 
 /* CONSULTOR OPTICO */
 /* consultor-presentation-v2 */
+/* consultor-premium-v3 */
 .consult-hero{background:radial-gradient(circle at 80% 10%,rgba(201,168,76,.18),transparent 34%),linear-gradient(135deg,#0b1425,#060d1a);border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:24px;overflow:hidden}
 .consult-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
 .consult-step{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:11px;color:var(--muted)}
@@ -239,7 +240,7 @@ input,select,textarea{font-size:16px!important}
 .compare-view.blur{filter:none}
 .compare-view.blur:after{content:"Visão sem tratamento";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(220,230,240,.28);backdrop-filter:blur(3px)}
 .compare-view.clear:after{content:"Maior nitidez e conforto visual";position:absolute;bottom:12px;background:rgba(6,13,26,.78);color:white;padding:7px 10px;border-radius:20px;font-size:11px}
-@media(max-width:768px){.lens-grid{grid-template-columns:1fr}.consult-steps{grid-template-columns:1fr 1fr}.compare-stage{grid-template-columns:1fr}.compare-view{height:160px}}
+.premium-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}.premium-tag{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:800}.premium-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.premium-kpi{padding:10px;border:1px solid var(--border);border-radius:10px;background:rgba(6,13,26,.45);text-align:center}.premium-kpi b{display:block;color:var(--gold);font-size:14px}.premium-kpi span{font-size:10px;color:var(--dim)}.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tier{position:relative;background:linear-gradient(180deg,#111c31,#0b1322);border:1px solid var(--border);border-radius:16px;padding:18px;min-height:190px}.tier.featured{border-color:var(--gold);box-shadow:0 10px 35px rgba(201,168,76,.12)}.tier .ribbon{position:absolute;right:10px;top:10px;font-size:9px;background:var(--gold);color:#08101d;padding:4px 7px;border-radius:20px;font-weight:900}.tier h3{font-family:'Playfair Display',serif;margin:8px 0}.tier ul{list-style:none;font-size:12px;color:var(--muted);line-height:1.9}.tier ul li:before{content:"✓ ";color:var(--green);font-weight:800}.consult-actions{position:sticky;bottom:8px;z-index:20;background:rgba(8,14,26,.94);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;padding:10px;display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:768px){.tier-grid{grid-template-columns:1fr}.premium-kpis{grid-template-columns:1fr 1fr 1fr}.consult-actions{bottom:64px}.lens-grid{grid-template-columns:1fr}.consult-steps{grid-template-columns:1fr 1fr}.compare-stage{grid-template-columns:1fr}.compare-view{height:160px}}
 </style>
 </head>
 <body>
@@ -852,6 +853,7 @@ function renderConsultor(){
       <div><div class="page-title">Consultor Óptico</div><div class="page-sub">Apresentação visual para atendimento e venda consultiva</div></div>
       <button class="btn btn-secondary" onclick="toggleConsultFullscreen()">⛶ Modo apresentação</button>
     </div>
+    <div class="premium-head"><div><div class="premium-tag">LCLASS EXPERIENCE</div><div style="font-size:12px;color:var(--dim)">Atendimento consultivo • apresentação em tablet e celular</div></div><span class="badge badge-yellow">MODO VENDEDOR</span></div>
     <div class="consult-hero">
       <div style="font-size:11px;color:var(--gold);font-weight:800;letter-spacing:.12em">ÓTICA LCLASS • EXPERIÊNCIA DE COMPRA</div>
       <h2 style="font-family:'Playfair Display',serif;font-size:30px;margin:7px 0">Encontre a lente ideal para cada rotina.</h2>
@@ -890,7 +892,14 @@ function renderConsultor(){
       </div>
     </div>
 
-    <div style="margin-top:20px;margin-bottom:10px"><div class="page-title" style="font-size:20px">4. Opções de lentes</div><div class="page-sub">Produtos já existentes na tabela da ótica</div></div>
+    <div class="card" style="margin-top:16px"><div class="card-title">4. Apresente por experiência</div>
+      <div class="tier-grid">
+        <div class="tier"><div class="premium-tag">ESSENCIAL</div><h3>Conforto</h3><ul><li>Opção objetiva para o dia a dia</li><li>Apresentação simples dos benefícios</li><li>Orçamento acessível</li></ul><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="consultFiltrarTier('essencial')">Ver opções</button></div>
+        <div class="tier featured"><div class="ribbon">DESTAQUE</div><div class="premium-tag">EVOLUÇÃO</div><h3>Performance</h3><ul><li>Mais opções de materiais</li><li>Tratamentos para diferentes rotinas</li><li>Comparação visual guiada</li></ul><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="consultFiltrarTier('performance')">Ver opções</button></div>
+        <div class="tier"><div class="premium-tag">PREMIUM</div><h3>Experiência</h3><ul><li>Materiais de maior índice disponíveis</li><li>Recursos avançados da tabela</li><li>Atendimento personalizado</li></ul><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="consultFiltrarTier('premium')">Ver opções</button></div>
+      </div>
+    </div>
+    <div style="margin-top:20px;margin-bottom:10px"><div class="page-title" style="font-size:20px">5. Opções de lentes</div><div class="page-sub">Produtos já existentes na tabela da ótica</div></div>
     <div class="lens-grid">${destaques.map((l,i)=>`
       <div class="lens-option" onclick="selecionarLenteConsultor(this,${i})">
         <div style="display:flex;justify-content:space-between;gap:8px"><span class="badge badge-yellow">${esc(l.tipo)}</span><span style="font-size:11px;color:var(--dim)">#${esc(l.cod)}</span></div>
@@ -900,8 +909,16 @@ function renderConsultor(){
       </div>`).join('')}</div>
 
     <div id="consult-escolha" class="card" style="margin-top:16px;display:none"></div>
+    <div class="consult-actions"><button class="btn btn-ghost" onclick="consultReiniciar()">↻ Novo atendimento</button><button class="btn btn-secondary" onclick="toggleConsultFullscreen()">⛶ Tela cheia</button></div>
   `;
 }
+function consultFiltrarTier(tier){
+  const cards=[...document.querySelectorAll('.lens-option')];
+  cards.forEach((c,i)=>{const ok=tier==='essencial'?i<4:tier==='performance'?(i>=4&&i<8):i>=8;c.style.display=ok?'block':'none'});
+  showToast('Opções '+tier+' destacadas','success');
+  cards.find(c=>c.style.display!=='none')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function consultReiniciar(){ renderConsultor(); window.scrollTo({top:0,behavior:'smooth'}); }
 function consultScene(tipo){
   const a=document.getElementById('scene-left'),b=document.getElementById('scene-right'),c=document.getElementById('scene-caption');
   if(!a||!b)return; a.className='consult-lens left '+tipo; b.className='consult-lens right '+tipo;
@@ -919,7 +936,7 @@ function selecionarLenteConsultor(el,idx){
   const l=TABELA_LAB.filter((x,i)=>i<12)[idx], box=document.getElementById('consult-escolha');
   const cliente=document.getElementById('consult-cliente')?.value||'Cliente', uso=document.getElementById('consult-uso')?.value||'Uso diário';
   box.style.display='block';
-  box.innerHTML='<div class="card-title">5. Resumo para apresentação</div><h2 style="font-family:Playfair Display,serif">'+esc(l.lente)+'</h2><p style="color:var(--muted);margin:8px 0">'+esc(cliente)+' • '+esc(uso)+'</p><div class="info-row"><span class="info-label">Material</span><span class="info-value">'+esc(l.material)+'</span></div><div class="info-row"><span class="info-label">Faixa</span><span class="info-value">'+esc(l.grade)+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="navigate(\'vendas\')">Montar venda</button><button class="btn btn-whatsapp" onclick="consultWhatsApp('+idx+')">WhatsApp</button></div>';
+  box.innerHTML='<div class="card-title">6. Resumo para apresentação</div><h2 style="font-family:Playfair Display,serif">'+esc(l.lente)+'</h2><p style="color:var(--muted);margin:8px 0">'+esc(cliente)+' • '+esc(uso)+'</p><div class="info-row"><span class="info-label">Material</span><span class="info-value">'+esc(l.material)+'</span></div><div class="info-row"><span class="info-label">Faixa</span><span class="info-value">'+esc(l.grade)+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="navigate(\'vendas\')">Montar venda</button><button class="btn btn-whatsapp" onclick="consultWhatsApp('+idx+')">WhatsApp</button></div>';
   box.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function consultWhatsApp(idx){
