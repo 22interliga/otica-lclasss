@@ -223,6 +223,7 @@ input,select,textarea{font-size:16px!important}
 /* consultor-premium-v3 */
 /* consultor-optics-v4 */
 /* consultor-builder-v5 */
+/* consultor-sales-v6 */
 .consult-hero{background:radial-gradient(circle at 80% 10%,rgba(201,168,76,.18),transparent 34%),linear-gradient(135deg,#0b1425,#060d1a);border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:24px;overflow:hidden}
 .consult-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
 .consult-step{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:11px;color:var(--muted)}
@@ -934,7 +935,7 @@ function renderConsultor(){
           <div class="quote-row"><span>Lente</span><b id="quote-lens">Selecione abaixo</b></div>
           <div class="quote-row"><span>Tratamento</span><select id="quote-treatment" class="input" onchange="updateConsultQuote()"><option value="0">Sem adicional</option><option value="80">Antirreflexo + R$ 80,00</option><option value="120">Filtro para telas + R$ 120,00</option><option value="180">Fotossensível + R$ 180,00</option></select></div>
           <div class="quote-total"><span>Total estimado</span><b id="quote-total">R$ 189,90</b></div>
-          <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="sendConsultQuote()">Enviar proposta no WhatsApp</button>
+          <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="consultToSale()">Registrar esta composição como venda</button><button class="btn btn-whatsapp" style="width:100%;margin-top:8px" onclick="sendConsultQuote()">Enviar proposta no WhatsApp</button>
         </div>
       </div>
     </div>
@@ -955,7 +956,18 @@ let consultFrame={name:'Clássica',price:189.90},consultLensQuote={name:'',price
 function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote()}
 function consultPrice(l){for(const k of ['ar_blue','ar_clean','ar_risco']){const n=parseFloat(l?.[k]);if(Number.isFinite(n)&&n>0)return n}return 0}
 function updateConsultQuote(){const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),total=consultFrame.price+consultLensQuote.price+extra;const a=document.getElementById('quote-frame'),b=document.getElementById('quote-lens'),c=document.getElementById('quote-total');if(a)a.textContent=consultFrame.name;if(b)b.textContent=consultLensQuote.name||'Selecione abaixo';if(c)c.textContent=fmtMoney(total)}
-function sendConsultQuote(){const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),total=consultFrame.price+consultLensQuote.price+extra;const cli=document.getElementById('consult-cliente');const nome=cli?.options[cli.selectedIndex]?.text||'Cliente';const msg='Olá, '+nome+'! Ótica Lclass: proposta apresentada no atendimento. Armação: '+consultFrame.name+'. Lente: '+(consultLensQuote.name||'a definir')+'. Total estimado: '+fmtMoney(total)+'. Valores sujeitos à confirmação da receita e disponibilidade.';window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')}
+function getConsultQuote(){
+ const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),sel=document.getElementById('quote-treatment'),treat=sel?.options[sel.selectedIndex]?.text||'Sem adicional';
+ const cli=document.getElementById('consult-cliente'),clienteId=cli?.value||'',nome=cli?.options[cli.selectedIndex]?.text||'Cliente';
+ return {clienteId,nome,frame:consultFrame.name,lens:consultLensQuote.name||'a definir',treat,total:consultFrame.price+consultLensQuote.price+extra};
+}
+function sendConsultQuote(){const q=getConsultQuote();const msg='Olá, '+q.nome+'! Ótica Lclass: proposta apresentada no atendimento. Armação: '+q.frame+'. Lente: '+q.lens+'. Tratamento: '+q.treat+'. Total estimado: '+fmtMoney(q.total)+'. Valores sujeitos à confirmação da receita e disponibilidade.';const tel=q.clienteId?clienteTel(parseInt(q.clienteId)):''; if(typeof modalWhatsApp==='function')modalWhatsApp('Proposta Ótica Lclass',msg,tel);else window.open('https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg),'_blank')}
+function consultToSale(){
+ const q=getConsultQuote(); if(!q.clienteId)return showToast('Selecione o cliente antes de montar a venda','error');
+ if(!consultLensQuote.name)return showToast('Selecione uma lente antes de montar a venda','error');
+ abrirFormVenda();
+ setTimeout(()=>{const cli=document.getElementById('vf_cli'),desc=document.getElementById('vf_desc'),qtd=document.getElementById('vf_qtd'),vu=document.getElementById('vf_vu'),obs=document.getElementById('vf_obs');if(cli)cli.value=q.clienteId;if(desc)desc.value='Óculos completo — '+q.frame+' + '+q.lens;if(qtd)qtd.value='1';if(vu)vu.value=q.total.toFixed(2);if(obs)obs.value='Venda originada pelo Consultor Óptico. Tratamento: '+q.treat+'.';calcTotal();},50);
+}
 let consultLensIndex=1.56, consultBaseEdge=18;
 function setLensIndex(btn,idx,edge){
   consultLensIndex=parseFloat(idx); consultBaseEdge=edge;
