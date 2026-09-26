@@ -249,6 +249,25 @@ input,select,textarea{font-size:16px!important}
 .compare-view.clear:after{content:"Maior nitidez e conforto visual";position:absolute;bottom:12px;background:rgba(6,13,26,.78);color:white;padding:7px 10px;border-radius:20px;font-size:11px}
 .premium-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}.premium-tag{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:800}.premium-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.premium-kpi{padding:10px;border:1px solid var(--border);border-radius:10px;background:rgba(6,13,26,.45);text-align:center}.premium-kpi b{display:block;color:var(--gold);font-size:14px}.premium-kpi span{font-size:10px;color:var(--dim)}.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tier{position:relative;background:linear-gradient(180deg,#111c31,#0b1322);border:1px solid var(--border);border-radius:16px;padding:18px;min-height:190px}.tier.featured{border-color:var(--gold);box-shadow:0 10px 35px rgba(201,168,76,.12)}.tier .ribbon{position:absolute;right:10px;top:10px;font-size:9px;background:var(--gold);color:#08101d;padding:4px 7px;border-radius:20px;font-weight:900}.tier h3{font-family:'Playfair Display',serif;margin:8px 0}.tier ul{list-style:none;font-size:12px;color:var(--muted);line-height:1.9}.tier ul li:before{content:"✓ ";color:var(--green);font-weight:800}.consult-actions{position:sticky;bottom:8px;z-index:20;background:rgba(8,14,26,.94);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;padding:10px;display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.optics-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.thickness-stage{height:230px;border-radius:16px;background:linear-gradient(145deg,#eaf3fb,#a9c0d4);position:relative;overflow:hidden}.lens-profile{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72%;height:110px;border:solid rgba(39,64,88,.75);border-width:8px 18px;border-radius:50%;background:rgba(255,255,255,.35);box-shadow:inset 0 0 30px rgba(255,255,255,.8);transition:.35s}.vision-stage{height:230px;border-radius:16px;background:linear-gradient(180deg,#b9d7f2,#dbe7d2 48%,#7b8d70 49%);position:relative;overflow:hidden}.vision-stage:before{content:"";position:absolute;left:29%;right:29%;bottom:-20px;height:180px;background:#59636e;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%)}.vision-mask{position:absolute;inset:0;backdrop-filter:blur(6px);background:rgba(220,230,235,.12);transition:.3s}.vision-clear{position:absolute;left:34%;top:0;width:32%;height:100%;backdrop-filter:blur(0);background:rgba(255,255,255,.03);clip-path:polygon(25% 0,75% 0,100% 100%,0 100%)}.vision-clear.wide{left:20%;width:60%}.range-row{display:flex;align-items:center;gap:10px;margin-top:12px}.range-row input{flex:1;accent-color:var(--gold)}.index-buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.index-buttons button.active{background:var(--gold);color:#08101d;border-color:var(--gold)}.builder-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}.frame-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.frame-card{border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;background:rgba(255,255,255,.025);transition:.2s}.frame-card:hover,.frame-card.active{border-color:var(--gold);transform:translateY(-2px)}.frame-art{height:86px;position:relative}.frame-art:before,.frame-art:after{content:"";position:absolute;top:24px;width:42%;height:38px;border:6px solid currentColor;border-radius:45%}.frame-art:before{left:2%}.frame-art:after{right:2%}.frame-art span{position:absolute;left:44%;top:42px;width:12%;height:5px;background:currentColor}.quote-box{border:1px solid rgba(201,168,76,.45);background:linear-gradient(145deg,rgba(201,168,76,.09),rgba(255,255,255,.02));border-radius:16px;padding:16px}.quote-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}.quote-total{display:flex;justify-content:space-between;align-items:end;padding-top:14px}.quote-total b:last-child{font-size:24px;color:var(--gold)}@media(max-width:768px){.builder-grid{grid-template-columns:1fr}.frame-gallery{grid-template-columns:repeat(3,1fr)}.optics-grid{grid-template-columns:1fr}.tier-grid{grid-template-columns:1fr}.premium-kpis{grid-template-columns:1fr 1fr 1fr}.consult-actions{bottom:64px}.lens-grid{grid-template-columns:1fr}.consult-steps{grid-template-columns:1fr 1fr}.compare-stage{grid-template-columns:1fr}.compare-view{height:160px}}
 
+
+/* prova-virtual-v1 */
+.virtual-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:18px}
+.virtual-stage{position:relative;min-height:360px;border:1px dashed #ef9aa0;border-radius:16px;background:#fff7f7;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.virtual-stage img{width:100%;max-height:520px;object-fit:contain;display:block}
+.virtual-placeholder{text-align:center;color:var(--dim);padding:50px 20px}
+.virtual-glasses{position:absolute;left:50%;top:43%;width:46%;height:18%;transform:translate(-50%,-50%);pointer-events:none;display:none}
+.virtual-glasses:before,.virtual-glasses:after{content:"";position:absolute;top:0;width:43%;height:100%;border:6px solid #202938;border-radius:45%}
+.virtual-glasses:before{left:0}.virtual-glasses:after{right:0}
+.virtual-glasses .bridge{position:absolute;left:43%;right:43%;top:43%;height:6px;background:#202938}
+.virtual-glasses.frame-urbana:before,.virtual-glasses.frame-urbana:after{border-radius:26%;border-color:#5d6877}
+.virtual-glasses.frame-premium:before,.virtual-glasses.frame-premium:after{border-color:#a67c22}
+.virtual-glasses.treat-blue:before,.virtual-glasses.treat-blue:after{background:rgba(77,149,255,.12)}
+.virtual-glasses.treat-photo:before,.virtual-glasses.treat-photo:after{background:rgba(55,61,70,.28)}
+.virtual-glasses.treat-ar:before,.virtual-glasses.treat-ar:after{box-shadow:inset 0 0 22px rgba(0,180,150,.12)}
+.virtual-summary{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+.virtual-note{font-size:11px;color:var(--dim);line-height:1.5;margin-top:10px}
+@media(max-width:850px){.virtual-grid{grid-template-columns:1fr}.virtual-stage{min-height:300px}}
+
 /* LCLASS LIGHT RED — homologação */
 :root{
   --bg:#f5f7fb;--surface:#ffffff;--surface2:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
@@ -996,7 +1015,34 @@ function renderConsultor(){
         </div>
       </div>
     </div>
-    <div style="margin-top:20px;margin-bottom:10px"><div class="page-title" style="font-size:20px">7. Opções de lentes</div><div class="page-sub">Produtos já existentes na tabela da ótica</div></div>
+    <div class="card" style="margin-top:16px"><div class="card-title">7. Visualização no cliente</div>
+      <div class="virtual-grid">
+        <div>
+          <div id="virtual-stage" class="virtual-stage">
+            <div id="virtual-placeholder" class="virtual-placeholder"><div style="font-size:42px;margin-bottom:10px">👤👓</div><b>Foto frontal do cliente</b><div style="margin-top:6px">Envie uma foto para visualizar a composição escolhida.</div></div>
+            <img id="virtual-photo" alt="Foto do cliente" style="display:none">
+            <div id="virtual-glasses" class="virtual-glasses"><span class="bridge"></span></div>
+          </div>
+          <input id="virtual-file" type="file" accept="image/*" capture="user" style="display:none" onchange="consultVirtualPhoto(this)">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-primary" onclick="document.getElementById('virtual-file').click()">📷 Tirar / enviar foto</button>
+            <button class="btn btn-ghost" onclick="consultVirtualReset()">Remover foto</button>
+          </div>
+        </div>
+        <div class="virtual-summary">
+          <div class="premium-tag">PROVA VIRTUAL</div>
+          <div class="quote-row"><span>Armação</span><b id="virtual-frame">Clássica</b></div>
+          <div class="quote-row"><span>Lente</span><b id="virtual-lens">Selecione uma lente</b></div>
+          <div class="quote-row"><span>Índice</span><b id="virtual-index">1.56</b></div>
+          <div class="quote-row"><span>Tratamento</span><b id="virtual-treatment">Sem adicional</b></div>
+          <div class="field" style="margin-top:14px"><label>Tamanho da armação na foto</label><input type="range" min="30" max="70" value="46" oninput="consultVirtualSize(this.value)"></div>
+          <div class="field"><label>Altura da armação na foto</label><input type="range" min="25" max="65" value="43" oninput="consultVirtualY(this.value)"></div>
+          <button class="btn btn-secondary" style="width:100%" onclick="consultVirtualUpdate()">Atualizar composição</button>
+          <div class="virtual-note">Pré-visualização comercial ilustrativa. O encaixe, a espessura e o efeito do tratamento podem variar no produto final.</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px;margin-bottom:10px"><div class="page-title" style="font-size:20px">8. Opções de lentes</div><div class="page-sub">Produtos já existentes na tabela da ótica</div></div>
     <div class="lens-grid">${destaques.map((l,i)=>`
       <div class="lens-option" onclick="selecionarLenteConsultor(this,${i})">
         <div style="display:flex;justify-content:space-between;gap:8px"><span class="badge badge-yellow">${esc(l.tipo)}</span><span style="font-size:11px;color:var(--dim)">#${esc(l.cod)}</span></div>
@@ -1010,9 +1056,9 @@ function renderConsultor(){
   `;
 }
 let consultFrame={name:'Clássica',price:189.90},consultLensQuote={name:'',price:0};
-function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote()}
+function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote();consultVirtualUpdate()}
 function consultPrice(l){for(const k of ['ar_blue','ar_clean','ar_risco']){const n=parseFloat(l?.[k]);if(Number.isFinite(n)&&n>0)return n}return 0}
-function updateConsultQuote(){const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),total=consultFrame.price+consultLensQuote.price+extra;const a=document.getElementById('quote-frame'),b=document.getElementById('quote-lens'),c=document.getElementById('quote-total');if(a)a.textContent=consultFrame.name;if(b)b.textContent=consultLensQuote.name||'Selecione abaixo';if(c)c.textContent=fmtMoney(total)}
+function updateConsultQuote(){const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),total=consultFrame.price+consultLensQuote.price+extra;const a=document.getElementById('quote-frame'),b=document.getElementById('quote-lens'),c=document.getElementById('quote-total');if(a)a.textContent=consultFrame.name;if(b)b.textContent=consultLensQuote.name||'Selecione abaixo';if(c)c.textContent=fmtMoney(total);consultVirtualUpdate()}
 function getConsultQuote(){
  const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),sel=document.getElementById('quote-treatment'),treat=sel?.options[sel.selectedIndex]?.text||'Sem adicional';
  const cli=document.getElementById('consult-cliente'),clienteId=cli?.value||'',nome=cli?.options[cli.selectedIndex]?.text||'Cliente';
@@ -1036,6 +1082,7 @@ function updateThickness(){
   const p=document.getElementById('lens-profile'),lab=document.getElementById('thickness-label'),v=document.getElementById('degree-value');
   if(p)p.style.borderLeftWidth=p.style.borderRightWidth=edge+'px'; if(v)v.textContent=degree.toFixed(2);
   if(lab)lab.textContent='Índice '+consultLensIndex.toFixed(2)+' • comparação ilustrativa';
+  consultVirtualUpdate();
 }
 function updateVision(v){
   const el=document.getElementById('vision-clear'),out=document.getElementById('vision-value'),lab=document.getElementById('vision-label');
@@ -1062,12 +1109,12 @@ function consultDemo(tipo){
   showToast(nomes[tipo],'info');
 }
 function selecionarLenteConsultor(el,idx){
-  const ql=TABELA_LAB[idx]; if(ql){consultLensQuote={name:ql.lente||ql.tipo||('Lente '+(idx+1)),price:consultPrice(ql)}; setTimeout(updateConsultQuote,0);}
+  const ql=TABELA_LAB.filter((x,i)=>i<12)[idx]; if(ql){consultLensQuote={name:ql.lente||ql.tipo||('Lente '+(idx+1)),price:consultPrice(ql)}; setTimeout(()=>{updateConsultQuote();consultVirtualUpdate();},0);}
   document.querySelectorAll('.lens-option').forEach(x=>x.classList.remove('selected')); el.classList.add('selected');
   const l=TABELA_LAB.filter((x,i)=>i<12)[idx], box=document.getElementById('consult-escolha');
   const cliente=document.getElementById('consult-cliente')?.value||'Cliente', uso=document.getElementById('consult-uso')?.value||'Uso diário';
   box.style.display='block';
-  box.innerHTML='<div class="card-title">8. Resumo para apresentação</div><h2 style="font-family:Playfair Display,serif">'+esc(l.lente)+'</h2><p style="color:var(--muted);margin:8px 0">'+esc(cliente)+' • '+esc(uso)+'</p><div class="info-row"><span class="info-label">Material</span><span class="info-value">'+esc(l.material)+'</span></div><div class="info-row"><span class="info-label">Faixa</span><span class="info-value">'+esc(l.grade)+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="navigate(\'vendas\')">Montar venda</button><button class="btn btn-whatsapp" onclick="consultWhatsApp('+idx+')">WhatsApp</button></div>';
+  box.innerHTML='<div class="card-title">9. Resumo para apresentação</div><h2 style="font-family:Playfair Display,serif">'+esc(l.lente)+'</h2><p style="color:var(--muted);margin:8px 0">'+esc(cliente)+' • '+esc(uso)+'</p><div class="info-row"><span class="info-label">Material</span><span class="info-value">'+esc(l.material)+'</span></div><div class="info-row"><span class="info-label">Faixa</span><span class="info-value">'+esc(l.grade)+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="navigate(\'vendas\')">Montar venda</button><button class="btn btn-whatsapp" onclick="consultWhatsApp('+idx+')">WhatsApp</button></div>';
   box.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function consultWhatsApp(idx){
@@ -1075,6 +1122,29 @@ function consultWhatsApp(idx){
   const msg='Olá'+(cliente?' '+cliente:'')+'! 👓 Na Ótica Lclass selecionamos a opção '+l.lente+' ('+l.material+'). Podemos preparar seu orçamento personalizado.';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
+let consultVirtualPhotoUrl='';
+function consultVirtualPhoto(input){
+  const file=input?.files?.[0]; if(!file)return;
+  if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl);
+  consultVirtualPhotoUrl=URL.createObjectURL(file);
+  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses');
+  if(img){img.src=consultVirtualPhotoUrl;img.style.display='block'} if(ph)ph.style.display='none'; if(g)g.style.display='block';
+  consultVirtualUpdate();
+}
+function consultVirtualReset(){
+  if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl); consultVirtualPhotoUrl='';
+  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),inp=document.getElementById('virtual-file');
+  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(inp)inp.value='';
+}
+function consultVirtualSize(v){const g=document.getElementById('virtual-glasses');if(g)g.style.width=v+'%'}
+function consultVirtualY(v){const g=document.getElementById('virtual-glasses');if(g)g.style.top=v+'%'}
+function consultVirtualUpdate(){
+  const frame=document.getElementById('virtual-frame'),lens=document.getElementById('virtual-lens'),idx=document.getElementById('virtual-index'),tr=document.getElementById('virtual-treatment'),g=document.getElementById('virtual-glasses'),sel=document.getElementById('quote-treatment');
+  const treatment=sel?.options[sel.selectedIndex]?.text||'Sem adicional';
+  if(frame)frame.textContent=consultFrame.name;if(lens)lens.textContent=consultLensQuote.name||'Selecione uma lente';if(idx)idx.textContent=consultLensIndex.toFixed(2);if(tr)tr.textContent=treatment;
+  if(g){g.className='virtual-glasses '+(consultFrame.name==='Urbana'?'frame-urbana':consultFrame.name==='Premium'?'frame-premium':'frame-classica');const val=String(sel?.value||'0');if(val==='80')g.classList.add('treat-ar');else if(val==='120')g.classList.add('treat-blue');else if(val==='180')g.classList.add('treat-photo');}
+}
+
 function toggleConsultFullscreen(){
   if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.();
 }
