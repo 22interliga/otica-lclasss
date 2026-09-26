@@ -2873,6 +2873,73 @@ function validarCapturaPupilometria(r){
   return {ok:problemas.length===0,problemas};
 }
 
+let _pupilometriaAtual=null;
+
+function abrirAjustePupilar(){
+  const base64=document.getElementById('rf_foto_hidden')?.value;
+  if(!base64||!_pupilometriaAtual){showToast('Analise uma foto primeiro','error');return;}
+  const r=_pupilometriaAtual;
+  if(![r.pupilOD_x,r.pupilOD_y,r.pupilOE_x,r.pupilOE_y].every(v=>Number.isFinite(Number(v)))){
+    showToast('Pontos pupilares não disponíveis','error');return;
+  }
+  const html='<div style="padding:18px"><div style="font-size:18px;font-weight:800;color:#C9A84C;margin-bottom:6px">Ajuste manual dos centros pupilares</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Toque primeiro no centro da pupila OD e depois no centro da pupila OE. O sistema recalcula as medidas sem nova chamada de IA.</div>'
+    +'<div id="ajuste_pup_wrap" style="position:relative;overflow:hidden;border:2px solid #C9A84C;border-radius:10px"><img id="ajuste_pup_img" src="'+base64+'" style="display:block;width:100%;height:auto"><canvas id="ajuste_pup_canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas></div>'
+    +'<div id="ajuste_pup_status" style="font-size:12px;color:#f59e0b;margin-top:10px">Próximo ponto: OD</div>'
+    +'<div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button id="ajuste_pup_salvar" class="btn btn-primary" disabled onclick="salvarAjustePupilar()">Recalcular medidas</button></div></div>';
+  openModal(html,'modal-lg');
+  setTimeout(iniciarAjustePupilar,80);
+}
+
+function iniciarAjustePupilar(){
+  const img=document.getElementById('ajuste_pup_img'), canvas=document.getElementById('ajuste_pup_canvas');
+  if(!img||!canvas)return;
+  const iniciar=()=>{
+    canvas.width=img.naturalWidth||1000; canvas.height=img.naturalHeight||600;
+    window._ajustePup={passo:0,pontos:[]};
+    const ctx=canvas.getContext('2d');
+    const redesenhar=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      window._ajustePup.pontos.forEach((p,i)=>{
+        ctx.beginPath();ctx.arc(p.x*canvas.width,p.y*canvas.height,Math.max(8,canvas.width*.012),0,Math.PI*2);
+        ctx.strokeStyle=i===0?'#ef4444':'#22c55e';ctx.lineWidth=Math.max(3,canvas.width*.004);ctx.stroke();
+        ctx.font='bold '+Math.max(14,canvas.width*.018)+'px sans-serif';ctx.fillStyle=i===0?'#ef4444':'#22c55e';
+        ctx.fillText(i===0?'OD':'OE',p.x*canvas.width+12,p.y*canvas.height-10);
+      });
+    };
+    const marcar=ev=>{
+      const rect=canvas.getBoundingClientRect();
+      const clientX=ev.touches?ev.touches[0].clientX:ev.clientX, clientY=ev.touches?ev.touches[0].clientY:ev.clientY;
+      const p={x:Math.min(1,Math.max(0,(clientX-rect.left)/rect.width)),y:Math.min(1,Math.max(0,(clientY-rect.top)/rect.height))};
+      if(window._ajustePup.passo<2) window._ajustePup.pontos[window._ajustePup.passo]=p;
+      window._ajustePup.passo=Math.min(2,window._ajustePup.passo+1); redesenhar();
+      const st=document.getElementById('ajuste_pup_status'), bt=document.getElementById('ajuste_pup_salvar');
+      if(window._ajustePup.passo===1)st.textContent='Próximo ponto: OE';
+      if(window._ajustePup.passo===2){st.textContent='OD e OE marcados. Confira os centros e recalcule.';bt.disabled=false;}
+    };
+    canvas.addEventListener('click',marcar);
+  };
+  if(img.complete)iniciar();else img.onload=iniciar;
+}
+
+function salvarAjustePupilar(){
+  if(!_pupilometriaAtual||!window._ajustePup||window._ajustePup.pontos.length<2)return;
+  const [od,oe]=window._ajustePup.pontos;
+  _pupilometriaAtual.pupilOD_x=od.x;_pupilometriaAtual.pupilOD_y=od.y;
+  _pupilometriaAtual.pupilOE_x=oe.x;_pupilometriaAtual.pupilOE_y=oe.y;
+  const rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
+  const rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
+  const qualidade=validarCapturaPupilometria(_pupilometriaAtual);
+  const medidas=qualidade.ok?calcularPupilometriaGeometrica(_pupilometriaAtual,rv,rt):null;
+  if(!medidas){showToast('Ajuste não passou pela validação geométrica','error');return;}
+  Object.assign(_pupilometriaAtual,medidas);
+  [['rf_dpD','dpOD'],['rf_dpE','dpOE'],['rf_coD','coOD'],['rf_coE','coOE']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=_pupilometriaAtual[k];});
+  closeModal();
+  const imgEl=document.querySelector('#rf_foto_preview img');
+  if(imgEl)desenharMedidas(imgEl,_pupilometriaAtual);
+  showToast('Pontos ajustados e medidas recalculadas','success');
+}
+
 async function analisarFotoIA(){
   var base64Full=document.getElementById('rf_foto_hidden')&&document.getElementById('rf_foto_hidden').value;
   if(!base64Full){showToast('Nenhuma foto selecionada','error');return;}
@@ -2884,6 +2951,7 @@ async function analisarFotoIA(){
     var rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
     var rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
     var r=await chamarIABackend('pupilometria',base64Full,{referenciaValor:rv,referenciaTipo:rt});
+    _pupilometriaAtual=r;
     var qualidade=validarCapturaPupilometria(r);
     var medidas=qualidade.ok?calcularPupilometriaGeometrica(r,rv,rt):null;
     var escalaConfiavel=!!medidas;
@@ -2914,6 +2982,7 @@ async function analisarFotoIA(){
       +'</div><div style="padding:8px;background:'+cc+'15;border:1px solid '+cc+'40;border-radius:8px;font-size:12px;color:'+cc+'">'
       +(r.compatibilidade||'---')+': '+(r.observacoes||'')+'</div>'
       +(qualidade.ok?'':'<div style="margin-top:8px;padding:8px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);border-radius:8px;color:#f59e0b;font-size:11px"><strong>Refaça a captura:</strong> '+qualidade.problemas.map(esc).join(' ')+'</div>')
+      +'<button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="abrirAjustePupilar()">🎯 Ajustar centros pupilares manualmente</button>'
       +'<div style="font-size:10px;color:var(--dim);margin-top:6px">'+(escalaConfiavel?'* Medição assistida: captura aprovada pelos controles geométricos. Confirme antes de finalizar a receita.':qualidade.ok?'* Captura aprovada, porém sem referência física válida: medidas em mm não foram calculadas.':'* Captura reprovada pelos controles geométricos: nenhuma medida em mm foi aceita.')+'</div></div>';
     showToast('Analise concluida!','success');
   }catch(err){
