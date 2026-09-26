@@ -2825,7 +2825,7 @@ async function analisarFotoIA(){
       +'"lensTop_y":"0.36","lensBot_y":"0.54",'
       +'"lensOD_x1":"0.22","lensOD_x2":"0.46","lensOE_x1":"0.54","lensOE_x2":"0.76",'
       +'"escalaUsada":"explique aqui","observacoes":"explique aqui"}';
-    var key=localStorage.getItem('otica_api_key')||['sk-ant-api03-kNYcfNOWq','ukzyKOhhX9I5PVT1MQnw7Js1lc8CzUXKs','4DhNmqbDryI6c8Cp81R6dQNibMHKhlITR6KuHddGpSJQ-kBlsAQAA'].join('');
+    var key=localStorage.getItem('otica_api_key')||'';
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
