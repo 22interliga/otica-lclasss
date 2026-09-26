@@ -226,6 +226,7 @@ input,select,textarea{font-size:16px!important}
 /* consultor-sales-v6 */
 /* estoque-foto-v1 */
 /* estoque-ia-v2 */
+/* ai-backend-ready-v1 */
 .stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stock-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface2)}.stock-photo{height:150px;background:#101827;display:flex;align-items:center;justify-content:center;overflow:hidden}.stock-photo img{width:100%;height:100%;object-fit:cover}.stock-body{padding:12px}.capture-box{border:1px dashed var(--gold);border-radius:16px;padding:18px;text-align:center;background:rgba(201,168,76,.05)}.capture-preview{max-height:320px;max-width:100%;border-radius:12px;margin:12px auto}.detect-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;margin:8px 0}@media(max-width:768px){.stock-grid{grid-template-columns:1fr 1fr}.detect-row{grid-template-columns:1fr 1fr}.detect-row .wide{grid-column:1/-1}}
 .consult-hero{background:radial-gradient(circle at 80% 10%,rgba(201,168,76,.18),transparent 34%),linear-gradient(135deg,#0b1425,#060d1a);border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:24px;overflow:hidden}
 .consult-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
@@ -3073,18 +3074,20 @@ function abrirCapturaEstoque(){
  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="salvarEntradaEstoque()">Salvar no estoque</button></div></div>`,'modal-lg');renderLinhasEstoque();
 }
 function lerFotoEstoque(inp){const file=inp.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{estoqueFoto=r.result;document.getElementById('stock_photo_preview').innerHTML='<img class="capture-preview" src="'+estoqueFoto+'">';const b=document.getElementById('btn_stock_ai');if(b)b.style.display='inline-flex';const st=document.getElementById('stock_ai_status');if(st)st.textContent='Foto pronta. A IA fará uma pré-seleção para sua conferência.'};r.readAsDataURL(file)}
+const AI_BACKEND_URL=localStorage.getItem('otica_ai_backend_url')||'';
+async function chamarIABackend(task,image){
+ if(!AI_BACKEND_URL)throw new Error('Backend seguro da IA ainda não foi ativado');
+ const resp=await fetch(AI_BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,image})});
+ const data=await resp.json().catch(()=>({}));
+ if(!resp.ok)throw new Error(data.error||('Backend IA '+resp.status));
+ return data;
+}
 async function analisarMostruarioIA(){
  const status=document.getElementById('stock_ai_status'),btn=document.getElementById('btn_stock_ai');
  if(!estoqueFoto)return showToast('Tire ou escolha uma foto primeiro','error');
- const key=localStorage.getItem('otica_api_key')||'';
- if(!key)return showToast('Configure a chave da IA nas configurações','error');
  try{
   if(btn){btn.disabled=true;btn.textContent='Analisando...'} if(status)status.textContent='IA analisando armações visíveis na foto...';
-  const m=estoqueFoto.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/); if(!m)throw new Error('Imagem inválida');
-  const prompt='Analise esta foto de estoque de uma ótica. Conte as armações de óculos visíveis e agrupe SOMENTE quando forem visualmente semelhantes. Não invente marca, código ou modelo. Para cada grupo, descreva formato e cor observáveis e informe quantidade estimada. Se houver dúvida, use confianca baixa. Retorne SOMENTE JSON válido neste formato: {"itens":[{"descricao":"retangular preta","cor":"preta","quantidade":2,"confianca":"alta"}],"totalVisivel":2,"observacao":"..."}';
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:900,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:m[1],data:m[2]}},{type:'text',text:prompt}]}]})});
-  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error((e.error&&e.error.message)||('API '+resp.status))}
-  const dat=await resp.json(),txt=dat.content?.[0]?.text||'',mm=txt.match(/\{[\s\S]*\}/),r=JSON.parse(mm?mm[0]:txt);
+  const r=await chamarIABackend('estoque',estoqueFoto);
   if(!Array.isArray(r.itens)||!r.itens.length)throw new Error('Nenhuma armação identificada');
   estoqueItensFoto=r.itens.map((x,i)=>({modelo:'ARM-'+String(i+1).padStart(3,'0'),marca:'',cor:x.cor||'',qtd:Math.max(1,parseInt(x.quantidade)||1),preco:0,descricao:x.descricao||'',confianca:x.confianca||'baixa'}));
   renderLinhasEstoque();
@@ -3296,6 +3299,10 @@ function abrirConfiguracoes(){
 
   footer.appendChild(clearBtn);
   footer.appendChild(saveBtn);
+  const backendTitle=document.createElement('div');backendTitle.style.cssText='font-size:11px;color:#C9A84C;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px';backendTitle.textContent='🔐 Backend seguro da IA';
+  const backendInput=document.createElement('input');backendInput.className='inp';backendInput.placeholder='URL do endpoint /api/vision';backendInput.value=localStorage.getItem('otica_ai_backend_url')||'';backendInput.style.marginBottom='8px';
+  const backendBtn=document.createElement('button');backendBtn.className='btn btn-secondary btn-sm';backendBtn.textContent='Salvar endpoint';backendBtn.addEventListener('click',()=>{const v=backendInput.value.trim();if(!/^https:\/\//.test(v))return showToast('Informe uma URL HTTPS válida','error');localStorage.setItem('otica_ai_backend_url',v);showToast('Backend da IA configurado','success')});
+  body.appendChild(backendTitle);body.appendChild(backendInput);body.appendChild(backendBtn);
   body.appendChild(secTitle);
   body.appendChild(status);
   body.appendChild(instrucoes);
