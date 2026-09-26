@@ -387,9 +387,15 @@ const defaultData = {
   receitas:[],
   crediario:[],
   vendas:[{"id": "f12b680fbb3604fb", "clienteId": "e73998b6d6fb007a", "produto": "oculos de grau completo", "quantidade": 1, "total": 630.0, "forma": "Dinheiro", "data": "2026-08-01", "obs": ""}, {"id": "da783fb992a8bfa8", "clienteId": "1e153f047234f2a5", "produto": "UM PAR DE LENTE MULTIFOCAL", "quantidade": 1, "total": 400.0, "forma": "Cartao", "data": "2026-08-01", "obs": ""}, {"id": "62ccd632f0e1ca66", "clienteId": "0a6d1701e8fd0ea2", "produto": "OCULOS COMPLETO MULTIFOCAL", "quantidade": 1, "total": 630.0, "forma": "Cartao", "data": "2026-08-01", "obs": ""}, {"id": "383b45739361c012", "clienteId": "b0561737b39e0a53", "produto": "OCULOS COMPLETO MULTIFOCAL", "quantidade": 1, "total": 630.0, "forma": "Cartao", "data": "2026-08-01", "obs": ""}, {"id": "003dc4567bfff4df", "clienteId": "1e153f047234f2a5", "produto": "OCULOS COMPLETO MULTIFOCAL", "quantidade": 1, "total": 400.0, "forma": "Cartao", "data": "2026-08-01", "obs": ""}],
-  agenda:[]
+  agenda:[],
+  estoque:[]
 };
-function load(k){return DB.get(k)||JSON.parse(JSON.stringify(defaultData[k]));}
+function load(k){
+  const salvo=DB.get(k);
+  if(salvo!==null&&salvo!==undefined)return salvo;
+  const padrao=defaultData[k];
+  return padrao===undefined?[]:JSON.parse(JSON.stringify(padrao));
+}
 function save(k,v){DB.set(k,v);}
 
 // ═══════════════════════════════════════════════════════════
