@@ -217,6 +217,28 @@ input,select,textarea{font-size:16px!important}
   #content{padding-bottom:72px}
   #header{padding:10px 16px}
 }
+
+/* CONSULTOR OPTICO */
+.consult-hero{background:radial-gradient(circle at 80% 10%,rgba(201,168,76,.18),transparent 34%),linear-gradient(135deg,#0b1425,#060d1a);border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:24px;overflow:hidden}
+.consult-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+.consult-step{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:11px;color:var(--muted)}
+.consult-step strong{display:block;color:var(--gold);font-size:16px;margin-bottom:3px}
+.lens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lens-option{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:.2s}
+.lens-option:hover,.lens-option.selected{border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,168,76,.2)}
+.lens-demo{height:180px;border-radius:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,#e7eef7,#a9bfd8);border:1px solid var(--border)}
+.lens-demo:before{content:"";position:absolute;inset:20px 12%;border-radius:50%;border:5px solid #27364a;background:rgba(255,255,255,.22);box-shadow:inset 0 0 40px rgba(255,255,255,.65)}
+.lens-demo.blue:before{background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(74,144,226,.24))}
+.lens-demo.photo:before{background:linear-gradient(135deg,rgba(56,65,78,.72),rgba(110,120,135,.5))}
+.lens-demo.ar:before{background:rgba(255,255,255,.08);box-shadow:inset 0 0 30px rgba(120,255,220,.14)}
+.compare-stage{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare-pane{border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)}
+.compare-pane h4{padding:10px 12px;font-size:12px;color:var(--gold)}
+.compare-view{height:220px;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,#eef3f8,#aebed0);color:#172033;font-weight:800}
+.compare-view.blur{filter:none}
+.compare-view.blur:after{content:"Visão sem tratamento";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(220,230,240,.28);backdrop-filter:blur(3px)}
+.compare-view.clear:after{content:"Maior nitidez e conforto visual";position:absolute;bottom:12px;background:rgba(6,13,26,.78);color:white;padding:7px 10px;border-radius:20px;font-size:11px}
+@media(max-width:768px){.lens-grid{grid-template-columns:1fr}.consult-steps{grid-template-columns:1fr 1fr}.compare-stage{grid-template-columns:1fr}.compare-view{height:160px}}
 </style>
 </head>
 <body>
@@ -734,6 +756,7 @@ setInterval(updateClock,1000);updateClock();
 // SIDEBAR / NAV
 // ═══════════════════════════════════════════════════════════
 const MENU=[
+  {id:'consultor',label:'Apresentação',icon:'<circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/><line x1="13" y1="12" x2="11" y2="12"/>'},
   {id:'dashboard',label:'Dashboard',icon:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>'},
   {id:'clientes',label:'Clientes',icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
   {id:'receituario',label:'Receituário',icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'},
@@ -811,11 +834,85 @@ function pieChart(data){
 function renderPage(){
   const p=state.pagina;
   if(p==='dashboard')renderDashboard();
+  else if(p==='consultor')renderConsultor();
   else if(p==='clientes')renderClientes();
   else if(p==='receituario')renderReceituario();
   else if(p==='crediario')renderCrediario();
   else if(p==='vendas')renderVendas();
   else if(p==='agenda')renderAgenda();
+}
+
+
+function renderConsultor(){
+  const clientes=state.clientes||[];
+  const destaques=TABELA_LAB.filter((x,i)=>i<12);
+  document.getElementById('content').innerHTML=`
+    <div class="page-header">
+      <div><div class="page-title">Consultor Óptico</div><div class="page-sub">Apresentação visual para atendimento e venda consultiva</div></div>
+      <button class="btn btn-secondary" onclick="toggleConsultFullscreen()">⛶ Modo apresentação</button>
+    </div>
+    <div class="consult-hero">
+      <div style="font-size:11px;color:var(--gold);font-weight:800;letter-spacing:.12em">ÓTICA LCLASS • EXPERIÊNCIA DE COMPRA</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:30px;margin:7px 0">Encontre a lente ideal para cada rotina.</h2>
+      <p style="color:var(--muted);max-width:700px">Mostre ao cliente, de forma simples e visual, as diferenças entre materiais e tratamentos antes de montar o orçamento.</p>
+      <div class="consult-steps"><div class="consult-step"><strong>1</strong>Cliente</div><div class="consult-step"><strong>2</strong>Necessidade</div><div class="consult-step"><strong>3</strong>Comparação</div><div class="consult-step"><strong>4</strong>Orçamento</div></div>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><div class="card-title">1. Atendimento</div>
+        <div class="field"><label>Cliente</label><select id="consult-cliente" class="inp"><option value="">Atendimento rápido</option>${clientes.map(c=>'<option value="'+esc(c.nome)+'">'+esc(c.nome)+'</option>').join('')}</select></div>
+        <div class="field"><label>Principal necessidade</label><select id="consult-uso" class="inp"><option>Uso diário</option><option>Computador e celular</option><option>Direção / uso noturno</option><option>Ambientes externos</option><option>Leitura</option><option>Multifocal / várias distâncias</option></select></div>
+      </div>
+      <div class="card"><div class="card-title">Demonstração rápida</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button class="btn btn-ghost" onclick="consultDemo('ar')">✨ Antirreflexo</button>
+          <button class="btn btn-ghost" onclick="consultDemo('blue')">💻 Filtro azul</button>
+          <button class="btn btn-ghost" onclick="consultDemo('photo')">☀️ Fotossensível</button>
+        </div>
+        <div id="consult-demo" class="lens-demo ar" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px"><div class="card-title">2. Compare visualmente</div>
+      <div class="compare-stage">
+        <div class="compare-pane"><h4>SEM TRATAMENTO</h4><div class="compare-view blur">LCLASS</div></div>
+        <div class="compare-pane"><h4>COM TRATAMENTO</h4><div class="compare-view clear">LCLASS</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;margin-bottom:10px"><div class="page-title" style="font-size:20px">3. Opções de lentes</div><div class="page-sub">Produtos já existentes na tabela da ótica</div></div>
+    <div class="lens-grid">${destaques.map((l,i)=>`
+      <div class="lens-option" onclick="selecionarLenteConsultor(this,${i})">
+        <div style="display:flex;justify-content:space-between;gap:8px"><span class="badge badge-yellow">${esc(l.tipo)}</span><span style="font-size:11px;color:var(--dim)">#${esc(l.cod)}</span></div>
+        <h3 style="font-size:15px;margin:12px 0 5px">${esc(l.lente)}</h3>
+        <div style="font-size:12px;color:var(--muted)">${esc(l.material)} • ${esc(l.grade)}</div>
+        <div style="margin-top:12px;color:var(--gold);font-weight:800">${l.ar_risco!=null?'a partir de '+fmtMoney(l.ar_risco):'Consultar'}</div>
+      </div>`).join('')}</div>
+
+    <div id="consult-escolha" class="card" style="margin-top:16px;display:none"></div>
+  `;
+}
+function consultDemo(tipo){
+  const el=document.getElementById('consult-demo'); if(!el)return;
+  el.className='lens-demo '+tipo;
+  const nomes={ar:'Antirreflexo: menos reflexos e maior transparência',blue:'Filtro azul: demonstração para uso de telas',photo:'Fotossensível: escurecimento demonstrativo em ambientes externos'};
+  showToast(nomes[tipo],'info');
+}
+function selecionarLenteConsultor(el,idx){
+  document.querySelectorAll('.lens-option').forEach(x=>x.classList.remove('selected')); el.classList.add('selected');
+  const l=TABELA_LAB.filter((x,i)=>i<12)[idx], box=document.getElementById('consult-escolha');
+  const cliente=document.getElementById('consult-cliente')?.value||'Cliente', uso=document.getElementById('consult-uso')?.value||'Uso diário';
+  box.style.display='block';
+  box.innerHTML='<div class="card-title">4. Resumo para apresentação</div><h2 style="font-family:Playfair Display,serif">'+esc(l.lente)+'</h2><p style="color:var(--muted);margin:8px 0">'+esc(cliente)+' • '+esc(uso)+'</p><div class="info-row"><span class="info-label">Material</span><span class="info-value">'+esc(l.material)+'</span></div><div class="info-row"><span class="info-label">Faixa</span><span class="info-value">'+esc(l.grade)+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="navigate(\'vendas\')">Montar venda</button><button class="btn btn-whatsapp" onclick="consultWhatsApp('+idx+')">WhatsApp</button></div>';
+  box.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function consultWhatsApp(idx){
+  const l=TABELA_LAB.filter((x,i)=>i<12)[idx], cliente=document.getElementById('consult-cliente')?.value||'';
+  const msg='Olá'+(cliente?' '+cliente:'')+'! 👓 Na Ótica Lclass selecionamos a opção '+l.lente+' ('+l.material+'). Podemos preparar seu orçamento personalizado.';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function toggleConsultFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.();
 }
 
 // ═══════════════════════════════════════════════════════════
