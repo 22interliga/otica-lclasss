@@ -460,6 +460,7 @@ function saveAll(){save('clientes',state.clientes);save('receitas',state.receita
 // UTILS
 // ═══════════════════════════════════════════════════════════
 const fmt=(v)=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fmtMoney=(v)=>fmt(Number(v)||0);
 const today=()=>new Date().toISOString().split('T')[0];
 const fmtDate=(d)=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR')}catch{return d}};
 const isOverdue=(d)=>new Date(d)<new Date(today());
