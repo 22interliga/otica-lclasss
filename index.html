@@ -1719,7 +1719,7 @@ function abrirFormReceita(id){
       <!-- Botões de captura -->
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:#C9A84C;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Pupilometria por Foto</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto do cliente usando a armação ou envie uma foto existente. A IA detecta automaticamente os pontos pupilares e calcula todas as medidas.</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto frontal do cliente usando a armação. A IA auxilia na localização dos pontos pupilares; medidas em mm só são apresentadas quando houver referência física informada para calibração.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button type="button" class="btn btn-secondary" style="flex:1;min-width:120px" onclick="abrirCameraGuia()">📷 Câmera com Guia</button>
           <input type="file" id="rf_foto_file" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this)"/>
@@ -2560,8 +2560,30 @@ function desenharMedidas(imgEl, r) {
   img.onload = function() {
     ctx.drawImage(img, 0, 0, w, h);
 
-    // Usar coordenadas reais da IA quando disponíveis, senão estimar
-    const temCoords = r.pupilOD_x && r.pupilOE_x;
+    // Só desenhar medições quando a IA devolver geometria completa e válida.
+    // Nunca substituir coordenadas ausentes por posições estimadas.
+    const coord01 = v => Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 1;
+    const temCoords = [
+      r.pupilOD_x,r.pupilOD_y,r.pupilOE_x,r.pupilOE_y,
+      r.lensOD_x1,r.lensOD_x2,r.lensOE_x1,r.lensOE_x2,
+      r.lensTop_y,r.lensBot_y
+    ].every(coord01);
+
+    if(!temCoords){
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.78)';
+      ctx.fillRect(0,h*0.82,w,h*0.18);
+      ctx.fillStyle='#f59e0b';
+      ctx.font='bold '+Math.max(13,w*0.018)+'px sans-serif';
+      ctx.fillText('MEDIÇÃO NÃO CONFIRMADA',w*0.03,h*0.88);
+      ctx.fillStyle='#ffffff';
+      ctx.font=Math.max(11,w*0.014)+'px sans-serif';
+      ctx.fillText('Pontos geométricos insuficientes. Refaça a captura frontal.',w*0.03,h*0.93);
+      ctx.restore();
+      if(wrapper){ wrapper.innerHTML=''; wrapper.appendChild(canvas); }
+      return;
+    }
+
     const cx  = w * 0.50;
     const fW  = w * 0.72;
     const lW  = temCoords
@@ -2654,9 +2676,20 @@ function desenharMedidas(imgEl, r) {
       ctx.restore();
     }
 
-    const dpTotal = r.dpOD && r.dpOE ? (parseInt(r.dpOD)+parseInt(r.dpOE)) : (parseInt(r.dpTotal)||62);
-    const dpOD    = r.dpOD || '—';
-    const dpOE    = r.dpOE || '—';
+    const numeroMM = v => {
+      const n = Number(String(v ?? '').replace(',','.'));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
+    const formatMM = v => {
+      const n = numeroMM(v);
+      return n===null ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+    };
+    const odNum = numeroMM(r.dpOD);
+    const oeNum = numeroMM(r.dpOE);
+    const totalNum = odNum!==null && oeNum!==null ? odNum+oeNum : numeroMM(r.dpTotal);
+    const dpTotal = totalNum===null ? '—' : totalNum.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+    const dpOD    = formatMM(r.dpOD);
+    const dpOE    = formatMM(r.dpOE);
     const coOD    = r.coOD || '—';
     const coOE    = r.coOE || '—';
     const larg    = r.larguraArmacao || '—';
@@ -2762,15 +2795,6 @@ function desenharMedidas(imgEl, r) {
     ctx.beginPath(); ctx.moveTo(bridgeCx,h*0.05); ctx.lineTo(bridgeCx,h*0.92); ctx.stroke();
     ctx.restore();
 
-    // Indicador "não calibrado" se não tiver coordenadas
-    if(!temCoords){
-      ctx.save();
-      ctx.fillStyle='rgba(201,168,76,0.85)';
-      ctx.font='bold '+Math.max(10,w*0.014)+'px sans-serif';
-      ctx.fillText('* Posição estimada — forneça medida da armação para maior precisão', w*0.02, h*0.06);
-      ctx.restore();
-    }
-
     // Watermark
     ctx.save();
     ctx.font='bold '+Math.max(11,w*0.016)+'px sans-serif';
@@ -2794,13 +2818,21 @@ async function analisarFotoIA(){
     var rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
     var rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
     var r=await chamarIABackend('pupilometria',base64Full,{referenciaValor:rv,referenciaTipo:rt});
-    if(r.dpOD){var el=document.getElementById('rf_dpD');if(el)el.value=r.dpOD;}
-    if(r.dpOE){var el=document.getElementById('rf_dpE');if(el)el.value=r.dpOE;}
-    if(r.coOD){var el=document.getElementById('rf_coD');if(el)el.value=r.coOD;}
-    if(r.coOE){var el=document.getElementById('rf_coE');if(el)el.value=r.coOE;}
+    var refNum=Number(String(rv||'').replace(',','.'));
+    var escalaConfiavel=Number.isFinite(refNum)&&refNum>0;
+    // Sem referência física informada, a geometria pode ser exibida, mas nenhum mm da IA vira medida final.
+    if(!escalaConfiavel){
+      r.dpOD=''; r.dpOE=''; r.dpTotal=''; r.coOD=''; r.coOE='';
+      r.larguraArmacao=''; r.alturaLente=''; r.ponteArmacao='';
+    }
+    if(escalaConfiavel&&r.dpOD){var el=document.getElementById('rf_dpD');if(el)el.value=r.dpOD;}
+    if(escalaConfiavel&&r.dpOE){var el=document.getElementById('rf_dpE');if(el)el.value=r.dpOE;}
+    if(escalaConfiavel&&r.coOD){var el=document.getElementById('rf_coD');if(el)el.value=r.coOD;}
+    if(escalaConfiavel&&r.coOE){var el=document.getElementById('rf_coE');if(el)el.value=r.coOE;}
     var imgEl=document.querySelector('#rf_foto_preview img');
     if(imgEl&&r)desenharMedidas(imgEl,r);
-    var dpT=r.dpTotal||((r.dpOD&&r.dpOE)?String(parseInt(r.dpOD)+parseInt(r.dpOE)):'---');
+    var nOD=Number(String(r.dpOD||'').replace(',','.')), nOE=Number(String(r.dpOE||'').replace(',','.'));
+    var dpT=r.dpTotal||((Number.isFinite(nOD)&&nOD>0&&Number.isFinite(nOE)&&nOE>0)?(nOD+nOE).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2}):'---');
     var cc=r.compatibilidade==='Sim'?'#10b981':r.compatibilidade==='Parcial'?'#C9A84C':'#ef4444';
     var itens=[['DP Total',dpT+'mm','#C9A84C'],['DP OD',(r.dpOD||'---')+'mm','#C9A84C'],['DP OE',(r.dpOE||'---')+'mm','#C9A84C'],
       ['CO OD',(r.coOD||'---')+'mm','#818cf8'],['CO OE',(r.coOE||'---')+'mm','#818cf8'],
@@ -2812,7 +2844,7 @@ async function analisarFotoIA(){
       +itens.map(function(it){return '<div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--dim)">'+it[0]+'</div><div style="font-size:14px;font-weight:800;color:'+it[2]+'">'+it[1]+'</div></div>';}).join('')
       +'</div><div style="padding:8px;background:'+cc+'15;border:1px solid '+cc+'40;border-radius:8px;font-size:12px;color:'+cc+'">'
       +(r.compatibilidade||'---')+': '+(r.observacoes||'')+'</div>'
-      +'<div style="font-size:10px;color:var(--dim);margin-top:6px">* Confirme com pupilometro</div></div>';
+      +'<div style="font-size:10px;color:var(--dim);margin-top:6px">'+(escalaConfiavel?'* Medição assistida: confirme antes de finalizar a receita.':'* Sem referência física: pontos detectados apenas para conferência visual; medidas em mm não foram validadas.')+'</div></div>';
     showToast('Analise concluida!','success');
   }catch(err){
     console.error('Erro IA:',err);
@@ -4858,7 +4890,7 @@ function abrirFormReceita(id){
       <!-- Botões de captura -->
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:#C9A84C;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Pupilometria por Foto</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto do cliente usando a armação ou envie uma foto existente. A IA detecta automaticamente os pontos pupilares e calcula todas as medidas.</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto frontal do cliente usando a armação. A IA auxilia na localização dos pontos pupilares; medidas em mm só são apresentadas quando houver referência física informada para calibração.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button type="button" class="btn btn-secondary" style="flex:1;min-width:120px" onclick="abrirCameraGuia()">📷 Câmera com Guia</button>
           <input type="file" id="rf_foto_file" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this)"/>
@@ -5541,8 +5573,30 @@ function desenharMedidas(imgEl, r) {
   img.onload = function() {
     ctx.drawImage(img, 0, 0, w, h);
 
-    // Usar coordenadas reais da IA quando disponíveis, senão estimar
-    const temCoords = r.pupilOD_x && r.pupilOE_x;
+    // Só desenhar medições quando a IA devolver geometria completa e válida.
+    // Nunca substituir coordenadas ausentes por posições estimadas.
+    const coord01 = v => Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 1;
+    const temCoords = [
+      r.pupilOD_x,r.pupilOD_y,r.pupilOE_x,r.pupilOE_y,
+      r.lensOD_x1,r.lensOD_x2,r.lensOE_x1,r.lensOE_x2,
+      r.lensTop_y,r.lensBot_y
+    ].every(coord01);
+
+    if(!temCoords){
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.78)';
+      ctx.fillRect(0,h*0.82,w,h*0.18);
+      ctx.fillStyle='#f59e0b';
+      ctx.font='bold '+Math.max(13,w*0.018)+'px sans-serif';
+      ctx.fillText('MEDIÇÃO NÃO CONFIRMADA',w*0.03,h*0.88);
+      ctx.fillStyle='#ffffff';
+      ctx.font=Math.max(11,w*0.014)+'px sans-serif';
+      ctx.fillText('Pontos geométricos insuficientes. Refaça a captura frontal.',w*0.03,h*0.93);
+      ctx.restore();
+      if(wrapper){ wrapper.innerHTML=''; wrapper.appendChild(canvas); }
+      return;
+    }
+
     const cx  = w * 0.50;
     const fW  = w * 0.72;
     const lW  = temCoords
@@ -5635,9 +5689,20 @@ function desenharMedidas(imgEl, r) {
       ctx.restore();
     }
 
-    const dpTotal = r.dpOD && r.dpOE ? (parseInt(r.dpOD)+parseInt(r.dpOE)) : (parseInt(r.dpTotal)||62);
-    const dpOD    = r.dpOD || '—';
-    const dpOE    = r.dpOE || '—';
+    const numeroMM = v => {
+      const n = Number(String(v ?? '').replace(',','.'));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
+    const formatMM = v => {
+      const n = numeroMM(v);
+      return n===null ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+    };
+    const odNum = numeroMM(r.dpOD);
+    const oeNum = numeroMM(r.dpOE);
+    const totalNum = odNum!==null && oeNum!==null ? odNum+oeNum : numeroMM(r.dpTotal);
+    const dpTotal = totalNum===null ? '—' : totalNum.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+    const dpOD    = formatMM(r.dpOD);
+    const dpOE    = formatMM(r.dpOE);
     const coOD    = r.coOD || '—';
     const coOE    = r.coOE || '—';
     const larg    = r.larguraArmacao || '—';
@@ -5742,15 +5807,6 @@ function desenharMedidas(imgEl, r) {
     ctx.lineWidth=1; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(bridgeCx,h*0.05); ctx.lineTo(bridgeCx,h*0.92); ctx.stroke();
     ctx.restore();
-
-    // Indicador "não calibrado" se não tiver coordenadas
-    if(!temCoords){
-      ctx.save();
-      ctx.fillStyle='rgba(201,168,76,0.85)';
-      ctx.font='bold '+Math.max(10,w*0.014)+'px sans-serif';
-      ctx.fillText('* Posição estimada — forneça medida da armação para maior precisão', w*0.02, h*0.06);
-      ctx.restore();
-    }
 
     // Watermark
     ctx.save();
