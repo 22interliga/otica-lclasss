@@ -1064,7 +1064,14 @@ function getConsultQuote(){
  const cli=document.getElementById('consult-cliente'),clienteId=cli?.value||'',nome=cli?.options[cli.selectedIndex]?.text||'Cliente';
  return {clienteId,nome,frame:consultFrame.name,lens:consultLensQuote.name||'a definir',treat,total:consultFrame.price+consultLensQuote.price+extra};
 }
-function sendConsultQuote(){const q=getConsultQuote();const msg='Olá, '+q.nome+'! Ótica Lclass: proposta apresentada no atendimento. Armação: '+q.frame+'. Lente: '+q.lens+'. Tratamento: '+q.treat+'. Total estimado: '+fmtMoney(q.total)+'. Valores sujeitos à confirmação da receita e disponibilidade.';const tel=q.clienteId?clienteTel(parseInt(q.clienteId)):''; if(typeof modalWhatsApp==='function')modalWhatsApp('Proposta Ótica Lclass',msg,tel);else window.open('https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg),'_blank')}
+function sendConsultQuote(){
+ const q=getConsultQuote(),sel=document.getElementById('quote-treatment'),extra=parseFloat(sel?.value||0);
+ const nome=(q.nome&&q.nome!=='Atendimento rápido')?q.nome:'Cliente';
+ const frameValor=consultFrame.price||0,lenteValor=consultLensQuote.price||0;
+ const msg='👓 *ÓTICA LCLASS*\\n*PROPOSTA PERSONALIZADA*\\n\\nOlá, '+nome+'! Segue a composição escolhida no atendimento:\\n\\n*ITEM                         VALOR*\\n────────────────────────\\nArmação: '+q.frame+'\\n'+fmtMoney(frameValor)+'\\n\\nLente: '+q.lens+'\\n'+fmtMoney(lenteValor)+'\\n\\nTratamento: '+q.treat.replace(/\\s*\\+\\s*R\\$.*$/,'')+'\\n'+(extra>0?fmtMoney(extra):'Incluso')+'\\n────────────────────────\\n*TOTAL ESTIMADO: '+fmtMoney(q.total)+'*\\n\\nÍndice selecionado: *'+consultLensIndex.toFixed(2)+'*\\n\\n_Valores sujeitos à confirmação da receita e disponibilidade._\\n\\nÓtica Lclass • Cuidando do seu olhar 👓';
+ const tel=q.clienteId?clienteTel(parseInt(q.clienteId)):'';
+ if(typeof modalWhatsApp==='function')modalWhatsApp('Proposta Ótica Lclass',msg,tel);else window.open('https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg),'_blank');
+}
 function consultToSale(){
  const q=getConsultQuote(); if(!q.clienteId)return showToast('Selecione o cliente antes de montar a venda','error');
  if(!consultLensQuote.name)return showToast('Selecione uma lente antes de montar a venda','error');
