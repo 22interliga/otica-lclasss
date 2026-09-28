@@ -1058,7 +1058,7 @@ function renderConsultor(){
             ${(()=>{
               const frames=(state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??1)>0 && (x.foto||x.imagem));
               if(!frames.length)return '<div style="grid-column:1/-1;padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--dim)">Cadastre armações com foto no Estoque para usar na prova virtual.</div>';
-              return frames.map((x,i)=>{const nome=x.nome||x.descricao||x.modelo||x.codigo||('Armação '+(i+1));const preco=Number(x.precoVenda||x.preco||x.valor||0);return '<div class="frame-card '+(i===0?'active':'')+'" onclick="selectStockFrame(this,'+i+')"><img src="'+x.foto+'" alt="'+esc(nome)+'" style="width:100%;height:86px;object-fit:contain;border-radius:8px;background:#fff"><b>'+esc(nome)+'</b><div class="muted">'+(preco?fmtMoney(preco):'Preço a confirmar')+'</div></div>'}).join('');
+              return frames.map((x,i)=>{const nome=x.nome||x.descricao||x.modelo||x.codigo||('Armação '+(i+1));const preco=Number(x.precoVenda||x.preco||x.valor||0);return '<div class="frame-card" onclick="selectStockFrame(this,'+i+')"><img src="'+(x.foto||x.imagem)+'" alt="'+esc(nome)+'" style="width:100%;height:86px;object-fit:contain;border-radius:8px;background:#fff"><b>'+esc(nome)+'</b><div class="muted">'+(preco?fmtMoney(preco):'Preço a confirmar')+'</div></div>'}).join('');
             })()}
           </div>
           <div style="font-size:11px;color:var(--dim);margin-top:8px">Armações disponíveis no Estoque com foto.</div>
@@ -1074,6 +1074,10 @@ function renderConsultor(){
       </div>
     </div>
     <div class="card" style="margin-top:16px"><div class="card-title">7. Visualização no cliente</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <button class="btn btn-primary" onclick="abrirBuscaArmacaoConsultor()">🔍 Buscar armação no estoque</button>
+        <div id="virtual-stock-selected" style="font-size:12px;color:var(--dim)">Nenhuma armação do estoque selecionada</div>
+      </div>
       <div class="virtual-grid">
         <div>
           <div id="virtual-stage" class="virtual-stage">
@@ -1103,7 +1107,7 @@ function renderConsultor(){
         </div>
         <div class="virtual-summary">
           <div class="premium-tag">PROVA VIRTUAL</div>
-          <div class="quote-row"><span>Armação</span><b id="virtual-frame">Clássica</b></div>
+          <div class="quote-row"><span>Armação</span><b id="virtual-frame">Selecione no estoque</b></div>
           <div class="quote-row"><span>Lente</span><b id="virtual-lens">Selecione uma lente</b></div>
           <div class="quote-row"><span>Índice</span><b id="virtual-index">1.56</b></div>
           <div class="quote-row"><span>Tratamento</span><b id="virtual-treatment">Sem adicional</b></div>
@@ -1126,9 +1130,24 @@ function renderConsultor(){
     <div id="consult-escolha" class="card" style="margin-top:16px;display:none"></div>
   `;
 }
-let consultFrame={name:'Clássica',price:189.90},consultLensQuote={name:'',price:0};
+let consultFrame={name:'Selecione no estoque',price:0},consultLensQuote={name:'',price:0};
 function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote();consultVirtualUpdate()}
 function getConsultStockFrames(){return (state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??1)>0 && (x.foto||x.imagem))}
+function abrirBuscaArmacaoConsultor(){
+ const frames=getConsultStockFrames();
+ const html=frames.length?frames.map((x,i)=>{
+  const nome=x.nome||x.descricao||x.modelo||x.codigo||('Armação '+(i+1)),foto=x.foto||x.imagem||'',preco=Number(x.precoVenda||x.preco||x.valor||0);
+  return '<button type="button" class="btn btn-ghost consult-stock-search-item" data-search="'+esc((nome+' '+(x.marca||'')+' '+(x.cor||'')+' '+(x.codigo||'')).toLowerCase())+'" style="width:100%;display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;text-align:left;margin-bottom:8px;padding:8px" onclick="selecionarArmacaoConsultorBusca('+i+')"><img src="'+foto+'" style="width:72px;height:54px;object-fit:contain;background:#fff;border-radius:7px"><span><b>'+esc(nome)+'</b><br><small style="color:var(--dim)">'+esc(x.marca||'')+(x.cor?' • '+esc(x.cor):'')+'</small></span><span>'+(preco?fmtMoney(preco):'')+'</span></button>'
+ }).join(''):'<div class="empty"><div class="empty-icon">👓</div><p>Nenhuma armação com foto e quantidade disponível no estoque.</p></div>';
+ showModal('<div class="modal-header"><h2>🔍 Armações do estoque</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div><div class="modal-body"><input class="inp" placeholder="Buscar modelo, marca, cor ou código..." oninput="filtrarBuscaArmacaoConsultor(this.value)" style="margin-bottom:12px"><div>'+html+'</div></div>','modal-md');
+}
+function filtrarBuscaArmacaoConsultor(q){q=(q||'').toLowerCase().trim();document.querySelectorAll('.consult-stock-search-item').forEach(el=>el.style.display=!q||el.dataset.search.includes(q)?'grid':'none')}
+function selecionarArmacaoConsultorBusca(i){
+ const x=getConsultStockFrames()[i];if(!x)return;
+ consultFrame={name:x.nome||x.descricao||x.modelo||x.codigo||'Armação do estoque',price:Number(x.precoVenda||x.preco||x.valor||0),stock:x};
+ closeModal();
+ setTimeout(()=>{const label=document.getElementById('virtual-stock-selected');if(label)label.innerHTML='<b style="color:var(--text)">'+esc(consultFrame.name)+'</b> • selecionada do estoque';const s=document.getElementById('virtual-stock-frame'),g=document.getElementById('virtual-glasses');if(s){s.src=x.foto||x.imagem;s.style.display=document.getElementById('virtual-photo')?.style.display==='block'?'block':'none'}if(g)g.style.display='none';updateConsultQuote();consultVirtualUpdate();showToast('Armação aplicada ao provador virtual','success')},60)
+}
 function selectStockFrame(el,i){const x=getConsultStockFrames()[i];if(!x)return;document.querySelectorAll('.frame-card').forEach(n=>n.classList.remove('active'));el.classList.add('active');consultFrame={name:x.nome||x.descricao||x.modelo||x.codigo||'Armação do estoque',price:Number(x.precoVenda||x.preco||x.valor||0),stock:x};const s=document.getElementById('virtual-stock-frame'),g=document.getElementById('virtual-glasses');if(s){s.src=x.foto||x.imagem;s.style.display=document.getElementById('virtual-photo')?.style.display==='block'?'block':'none'}if(g)g.style.display='none';updateConsultQuote();consultVirtualUpdate()}
 
 function consultPrice(l){for(const k of ['ar_blue','ar_clean','ar_risco']){const n=parseFloat(l?.[k]);if(Number.isFinite(n)&&n>0)return n}return 0}
