@@ -2891,15 +2891,22 @@ function iniciarMedicaoManualSemIA(){
    +'<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Marque 10 pontos na ordem indicada. O cálculo é geométrico e usa a referência física informada.</div>'
    +'<div id="manual_pup_instr" style="font-weight:800;margin-bottom:8px;color:#e30613">1/10 — Centro da pupila OD</div>'
    +'<div style="position:relative;border:2px solid #e30613;border-radius:10px;overflow:hidden"><img id="manual_pup_img" src="'+base64+'" style="display:block;width:100%;height:auto"><canvas id="manual_pup_canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas></div>'
-   +'<div class="modal-footer"><button id="manual_pup_cancelar" type="button" class="btn btn-ghost">Cancelar</button><button id="manual_pup_ok" type="button" class="btn btn-primary" disabled>Calcular medidas</button></div></div>';
+   +'<div class="modal-footer"><button id="manual_pup_desfazer" type="button" class="btn btn-secondary" disabled>↶ Desfazer último ponto</button><button id="manual_pup_cancelar" type="button" class="btn btn-ghost">Cancelar</button><button id="manual_pup_ok" type="button" class="btn btn-primary" disabled>Calcular medidas</button></div></div>';
   showManualPupModal(html);
-  setTimeout(()=>{configurarMedicaoManualSemIA();const cancelar=document.getElementById('manual_pup_cancelar'),calcular=document.getElementById('manual_pup_ok');if(cancelar)cancelar.addEventListener('click',()=>closeManualPupModal());if(calcular)calcular.addEventListener('click',()=>concluirMedicaoManualSemIA());},80);
+  setTimeout(()=>{configurarMedicaoManualSemIA();const cancelar=document.getElementById('manual_pup_cancelar'),calcular=document.getElementById('manual_pup_ok'),desfazer=document.getElementById('manual_pup_desfazer');if(cancelar)cancelar.addEventListener('click',()=>closeManualPupModal());if(calcular)calcular.addEventListener('click',()=>concluirMedicaoManualSemIA());if(desfazer)desfazer.addEventListener('click',()=>desfazerUltimoPontoManual());},80);
+}
+function desfazerUltimoPontoManual(){
+  const s=window._manualPup;if(!s||!s.p||!s.p.length)return;
+  s.p.pop();
+  const cv=document.getElementById('manual_pup_canvas'),ins=document.getElementById('manual_pup_instr'),ok=document.getElementById('manual_pup_ok'),desf=document.getElementById('manual_pup_desfazer');
+  if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);s.p.forEach((q,i)=>{const x=q.x*cv.width,y=q.y*cv.height;ctx.beginPath();ctx.arc(x,y,Math.max(7,cv.width*.009),0,Math.PI*2);ctx.strokeStyle='#e30613';ctx.lineWidth=Math.max(3,cv.width*.003);ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold '+Math.max(12,cv.width*.014)+'px sans-serif';ctx.fillText(String(i+1),x+10,y-8);});}
+  const n=s.p.length;if(ins)ins.textContent=(n+1)+'/10 — '+s.nomes[n];if(ok){ok.disabled=true;ok.textContent='Calcular medidas';}if(desf)desf.disabled=n===0;
 }
 function configurarMedicaoManualSemIA(){
   const img=document.getElementById('manual_pup_img'),cv=document.getElementById('manual_pup_canvas'); if(!img||!cv)return;
   const nomes=['Centro da pupila OD','Centro da pupila OE','Lente OD — borda esquerda','Lente OD — borda direita','Lente OE — borda esquerda','Lente OE — borda direita','Topo da lente OD','Base da lente OD','Topo da lente OE','Base da lente OE'];
   const start=()=>{cv.width=img.naturalWidth||1000;cv.height=img.naturalHeight||700;window._manualPup={p:[],nomes};
-    cv.onclick=ev=>{if(window._manualPup.p.length>=10)return;const b=cv.getBoundingClientRect();const p={x:(ev.clientX-b.left)/b.width,y:(ev.clientY-b.top)/b.height};window._manualPup.p.push(p);
+    cv.onclick=ev=>{if(window._manualPup.p.length>=10)return;const b=cv.getBoundingClientRect();const p={x:(ev.clientX-b.left)/b.width,y:(ev.clientY-b.top)/b.height};window._manualPup.p.push(p);const desf=document.getElementById('manual_pup_desfazer');if(desf)desf.disabled=false;
       const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);window._manualPup.p.forEach((q,i)=>{const x=q.x*cv.width,y=q.y*cv.height;ctx.beginPath();ctx.arc(x,y,Math.max(7,cv.width*.009),0,Math.PI*2);ctx.strokeStyle='#e30613';ctx.lineWidth=Math.max(3,cv.width*.003);ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold '+Math.max(12,cv.width*.014)+'px sans-serif';ctx.fillText(String(i+1),x+10,y-8);});
       const n=window._manualPup.p.length,ins=document.getElementById('manual_pup_instr'),ok=document.getElementById('manual_pup_ok');if(n<10){ins.textContent=(n+1)+'/10 — '+nomes[n];}else{ins.textContent='10/10 — Pontos marcados. Calculando medidas...';if(ok){ok.disabled=true;ok.textContent='Calculando...';}setTimeout(()=>concluirMedicaoManualSemIA(),60);}
     };
