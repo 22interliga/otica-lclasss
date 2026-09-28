@@ -268,6 +268,20 @@ input,select,textarea{font-size:16px!important}
 .virtual-note{font-size:11px;color:var(--dim);line-height:1.5;margin-top:10px}
 @media(max-width:850px){.virtual-grid{grid-template-columns:1fr}.virtual-stage{min-height:300px}}
 
+
+/* consultor-visual-v2 */
+.consult-actions{display:none!important}
+.vision-stage{--focus-blur:7px;background:linear-gradient(180deg,#b9d7f2,#dbe7d2 48%,#7b8d70 49%)}
+.vision-stage:after{content:"";position:absolute;inset:0;backdrop-filter:blur(var(--focus-blur));-webkit-backdrop-filter:blur(var(--focus-blur));transition:backdrop-filter .18s ease;pointer-events:none}
+.vision-focus{position:absolute;inset:0}
+.vision-ends{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font-size:10px;font-weight:800;color:var(--dim)}
+.progressive-demo{height:170px;border-radius:16px;background:linear-gradient(180deg,#b9d7f2,#dbe7d2 48%,#7b8d70 49%);position:relative;overflow:hidden}
+.progressive-demo:before{content:"";position:absolute;left:29%;right:29%;bottom:-20px;height:140px;background:#59636e;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%)}
+.progressive-blur{position:absolute;top:0;bottom:0;width:50%;z-index:2;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(220,230,235,.18);pointer-events:none}
+.progressive-blur.left{left:0}.progressive-blur.right{right:0}
+.progressive-clear{position:absolute;left:32.5%;top:0;width:35%;height:100%;z-index:3;clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);box-shadow:0 0 0 1000px rgba(255,255,255,0);transition:left .2s ease,width .2s ease;pointer-events:none}
+.progressive-clear:after{content:"";position:absolute;inset:0;backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}
+
 /* LCLASS LIGHT RED — homologação */
 :root{
   --bg:#f5f7fb;--surface:#ffffff;--surface2:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
@@ -980,9 +994,15 @@ function renderConsultor(){
           <div class="range-row"><span style="font-size:11px;color:var(--dim)">Grau ilustrativo</span><input id="degree-demo" type="range" min="1" max="10" value="4" oninput="updateThickness()"><b id="degree-value">4.00</b></div>
         </div>
         <div>
-          <div style="font-weight:800;margin-bottom:8px">Campo de visão progressivo</div>
-          <div class="vision-stage"><div class="vision-mask"></div><div id="vision-clear" class="vision-clear"></div><div id="vision-label" class="consult-caption">Corredor padrão</div></div>
-          <div class="range-row"><span style="font-size:11px;color:var(--dim)">Amplitude</span><input type="range" min="30" max="60" value="32" oninput="updateVision(this.value)"><b id="vision-value">32%</b></div>
+          <div style="font-weight:800;margin-bottom:8px">Comparação de nitidez</div>
+          <div class="vision-stage" id="vision-stage"><div id="vision-focus" class="vision-focus"></div><div id="vision-label" class="consult-caption">Sem óculos</div></div>
+          <div class="vision-ends"><span>SEM ÓCULOS</span><span>COM ÓCULOS</span></div>
+          <div class="range-row"><input aria-label="Comparar visão sem e com óculos" type="range" min="0" max="100" value="0" oninput="updateVisionFocus(this.value)"><b id="vision-focus-value">0%</b></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:7px">Simulação ilustrativa para facilitar a explicação ao cliente.</div>
+          <div style="font-weight:800;margin:18px 0 8px">Campo de visão progressivo</div>
+          <div class="progressive-demo"><div class="progressive-blur left"></div><div id="vision-clear" class="progressive-clear"></div><div class="progressive-blur right"></div><div id="progressive-label" class="consult-caption">Corredor padrão</div></div>
+          <div class="vision-ends"><span>ESTREITO</span><span>AMPLO</span></div>
+          <div class="range-row"><input aria-label="Amplitude do campo de visão progressivo" type="range" min="30" max="70" value="35" oninput="updateVision(this.value)"><b id="vision-value">35%</b></div>
         </div>
       </div>
       <div style="font-size:11px;color:var(--dim);margin-top:10px">Visualização educativa e comercial. A espessura real depende da receita, diâmetro, armação, centragem, material e fabricação. O campo de visão varia conforme desenho da lente e adaptação individual.</div>
@@ -1052,7 +1072,6 @@ function renderConsultor(){
       </div>`).join('')}</div>
 
     <div id="consult-escolha" class="card" style="margin-top:16px;display:none"></div>
-    <div class="consult-actions"><button class="btn btn-ghost" onclick="consultReiniciar()">↻ Novo atendimento</button><button class="btn btn-secondary" onclick="toggleConsultFullscreen()">⛶ Tela cheia</button></div>
   `;
 }
 let consultFrame={name:'Clássica',price:189.90},consultLensQuote={name:'',price:0};
@@ -1091,10 +1110,17 @@ function updateThickness(){
   if(lab)lab.textContent='Índice '+consultLensIndex.toFixed(2)+' • comparação ilustrativa';
   consultVirtualUpdate();
 }
+function updateVisionFocus(v){
+  const n=Math.max(0,Math.min(100,parseInt(v)||0)),stage=document.getElementById('vision-stage'),out=document.getElementById('vision-focus-value'),lab=document.getElementById('vision-label');
+  if(stage)stage.style.setProperty('--focus-blur',((100-n)/14).toFixed(1)+'px');
+  if(out)out.textContent=n+'%';
+  if(lab)lab.textContent=n<35?'Sem óculos':n<75?'Nitidez intermediária':'Com óculos';
+}
 function updateVision(v){
-  const el=document.getElementById('vision-clear'),out=document.getElementById('vision-value'),lab=document.getElementById('vision-label');
-  const n=parseInt(v); if(el){el.style.left=((100-n)/2)+'%';el.style.width=n+'%'} if(out)out.textContent=n+'%';
-  if(lab)lab.textContent=n>=50?'Corredor ampliado':n>=40?'Corredor intermediário':'Corredor padrão';
+  const n=Math.max(30,Math.min(70,parseInt(v)||35)),el=document.getElementById('vision-clear'),out=document.getElementById('vision-value'),lab=document.getElementById('progressive-label');
+  if(el){el.style.left=((100-n)/2)+'%';el.style.width=n+'%'}
+  if(out)out.textContent=n+'%';
+  if(lab)lab.textContent=n>=55?'Corredor amplo':n>=42?'Corredor intermediário':'Corredor estreito';
 }
 function consultFiltrarTier(tier){
   const cards=[...document.querySelectorAll('.lens-option')];
