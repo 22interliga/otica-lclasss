@@ -2904,7 +2904,7 @@ function desfazerUltimoPontoManual(){
 }
 function configurarMedicaoManualSemIA(){
   const img=document.getElementById('manual_pup_img'),cv=document.getElementById('manual_pup_canvas'); if(!img||!cv)return;
-  const nomes=['Centro da pupila OD','Centro da pupila OE','Lente OD — borda esquerda','Lente OD — borda direita','Lente OE — borda esquerda','Lente OE — borda direita','Topo da lente OD','Base da lente OD','Topo da lente OE','Base da lente OE'];
+  const nomes=['Centro da pupila OD','Centro da pupila OE','Lente OD — extremo externo','Lente OD — extremo junto ao nariz','Lente OE — extremo junto ao nariz','Lente OE — extremo externo','Topo da lente OD','Base da lente OD','Topo da lente OE','Base da lente OE'];
   const start=()=>{cv.width=img.naturalWidth||1000;cv.height=img.naturalHeight||700;window._manualPup={p:[],nomes};
     const lupa=document.getElementById('manual_pup_lupa'),lc=document.getElementById('manual_pup_lupa_canvas'),stage=document.getElementById('manual_pup_stage');
     const atualizarLupa=ev=>{if(!lupa||!lc||!stage)return;const b=cv.getBoundingClientRect(),sb=stage.getBoundingClientRect(),cx=(ev.clientX-b.left)/b.width*cv.width,cy=(ev.clientY-b.top)/b.height*cv.height,ctx=lc.getContext('2d'),zoom=3.2,sw=lc.width/zoom,sh=lc.height/zoom;ctx.clearRect(0,0,lc.width,lc.height);ctx.drawImage(img,cx-sw/2,cy-sh/2,sw,sh,0,0,lc.width,lc.height);const lx=Math.max(6,Math.min(sb.width-138,(ev.clientX-sb.left)+24)),ly=Math.max(6,Math.min(sb.height-138,(ev.clientY-sb.top)-150));lupa.style.left=lx+'px';lupa.style.top=ly+'px';lupa.style.display='block';};
