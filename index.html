@@ -2185,12 +2185,11 @@ function mostrarGradeGuia(){
       tmp.width = v.videoWidth || 1280;
       tmp.height = v.videoHeight || 720;
       const ctx = tmp.getContext('2d');
-      ctx.save();
-      ctx.scale(-1,1); // desfaz o espelho para foto normal
-      ctx.drawImage(v,-tmp.width,0,tmp.width,tmp.height);
-      ctx.restore();
-      const b64 = tmp.toDataURL('image/jpeg',0.92);
-      document.getElementById('rf_foto_hidden').value = b64;
+      ctx.drawImage(v,0,0,tmp.width,tmp.height);
+      const b64 = tmp.toDataURL('image/jpeg',0.90);
+      const hidden=document.getElementById('rf_foto_hidden');
+      if(!hidden){showToast('Não foi possível vincular a foto à medição','error');return;}
+      hidden.value = b64;
       // Mostra preview
       const prev = document.getElementById('rf_foto_preview');
       if(prev){
@@ -2208,7 +2207,7 @@ function mostrarGradeGuia(){
       }
       const btn=document.getElementById('btn_analisar_ia');
       if(btn) btn.style.display='inline-flex';
-      showToast('Foto capturada! Clique em Analisar com IA.','success');
+      showToast('Foto capturada. Informe a referência e toque em Medir sem IA.','success');
     }
     fecharGradeGuia();
   });
