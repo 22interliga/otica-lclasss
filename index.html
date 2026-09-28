@@ -1134,12 +1134,14 @@ let consultFrame={name:'Selecione no estoque',price:0},consultLensQuote={name:''
 function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote();consultVirtualUpdate()}
 function getConsultStockFrames(){return (state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??1)>0 && (x.foto||x.imagem))}
 function abrirBuscaArmacaoConsultor(){
+ try{
  const frames=getConsultStockFrames();
  const html=frames.length?frames.map((x,i)=>{
   const nome=x.nome||x.descricao||x.modelo||x.codigo||('Armação '+(i+1)),foto=x.foto||x.imagem||'',preco=Number(x.precoVenda||x.preco||x.valor||0);
   return '<button type="button" class="btn btn-ghost consult-stock-search-item" data-search="'+esc((nome+' '+(x.marca||'')+' '+(x.cor||'')+' '+(x.codigo||'')).toLowerCase())+'" style="width:100%;display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;text-align:left;margin-bottom:8px;padding:8px" onclick="selecionarArmacaoConsultorBusca('+i+')"><img src="'+foto+'" style="width:72px;height:54px;object-fit:contain;background:#fff;border-radius:7px"><span><b>'+esc(nome)+'</b><br><small style="color:var(--dim)">'+esc(x.marca||'')+(x.cor?' • '+esc(x.cor):'')+'</small></span><span>'+(preco?fmtMoney(preco):'')+'</span></button>'
  }).join(''):'<div class="empty"><div class="empty-icon">👓</div><p>Nenhuma armação com foto e quantidade disponível no estoque.</p></div>';
  showModal('<div class="modal-header"><h2>🔍 Armações do estoque</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div><div class="modal-body"><input class="inp" placeholder="Buscar modelo, marca, cor ou código..." oninput="filtrarBuscaArmacaoConsultor(this.value)" style="margin-bottom:12px"><div>'+html+'</div></div>','modal-md');
+ }catch(e){console.error('Erro ao abrir estoque no provador',e);showToast('Erro ao abrir estoque: '+(e?.message||'falha inesperada'),'error');}
 }
 function filtrarBuscaArmacaoConsultor(q){q=(q||'').toLowerCase().trim();document.querySelectorAll('.consult-stock-search-item').forEach(el=>el.style.display=!q||el.dataset.search.includes(q)?'grid':'none')}
 function selecionarArmacaoConsultorBusca(i){
