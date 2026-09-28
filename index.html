@@ -2908,7 +2908,7 @@ function configurarMedicaoManualSemIA(){
   const start=()=>{cv.width=img.naturalWidth||1000;cv.height=img.naturalHeight||700;window._manualPup={p:[],nomes};
     cv.onclick=ev=>{if(window._manualPup.p.length>=10)return;const b=cv.getBoundingClientRect();const p={x:(ev.clientX-b.left)/b.width,y:(ev.clientY-b.top)/b.height};window._manualPup.p.push(p);const desf=document.getElementById('manual_pup_desfazer');if(desf)desf.disabled=false;
       const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);window._manualPup.p.forEach((q,i)=>{const x=q.x*cv.width,y=q.y*cv.height;ctx.beginPath();ctx.arc(x,y,Math.max(7,cv.width*.009),0,Math.PI*2);ctx.strokeStyle='#e30613';ctx.lineWidth=Math.max(3,cv.width*.003);ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold '+Math.max(12,cv.width*.014)+'px sans-serif';ctx.fillText(String(i+1),x+10,y-8);});
-      const n=window._manualPup.p.length,ins=document.getElementById('manual_pup_instr'),ok=document.getElementById('manual_pup_ok');if(n<10){ins.textContent=(n+1)+'/10 — '+nomes[n];}else{ins.textContent='10/10 — Pontos marcados. Calculando medidas...';if(ok){ok.disabled=true;ok.textContent='Calculando...';}setTimeout(()=>concluirMedicaoManualSemIA(),60);}
+      const n=window._manualPup.p.length,ins=document.getElementById('manual_pup_instr'),ok=document.getElementById('manual_pup_ok');if(n<10){ins.textContent=(n+1)+'/10 — '+nomes[n];if(ok){ok.disabled=true;ok.textContent='Calcular medidas';}}else{ins.textContent='10/10 — Confira os pontos. Se necessário, use Desfazer. Quando estiver correto, toque em Calcular medidas.';if(ok){ok.disabled=false;ok.textContent='Calcular medidas';}}
     };
   }; if(img.complete)start();else img.onload=start;
 }
