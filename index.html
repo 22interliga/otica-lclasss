@@ -1055,11 +1055,13 @@ function renderConsultor(){
         <div>
           <div style="font-weight:800;margin-bottom:10px">Escolha uma armação</div>
           <div class="frame-gallery">
-            <div class="frame-card active" onclick="selectFrame(this,'Clássica',189.90)"><div class="frame-art" style="color:#c9a84c"><span></span></div><b>Clássica</b><div class="muted">R$ 189,90</div></div>
-            <div class="frame-card" onclick="selectFrame(this,'Urbana',239.90)"><div class="frame-art" style="color:#aeb8c5"><span></span></div><b>Urbana</b><div class="muted">R$ 239,90</div></div>
-            <div class="frame-card" onclick="selectFrame(this,'Premium',349.90)"><div class="frame-art" style="color:#d9b55d"><span></span></div><b>Premium</b><div class="muted">R$ 349,90</div></div>
+            ${(()=>{
+              const frames=(state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??1)>0 && (x.foto||x.imagem));
+              if(!frames.length)return '<div style="grid-column:1/-1;padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--dim)">Cadastre armações com foto no Estoque para usar na prova virtual.</div>';
+              return frames.map((x,i)=>{const nome=x.nome||x.descricao||x.modelo||x.codigo||('Armação '+(i+1));const preco=Number(x.precoVenda||x.preco||x.valor||0);return '<div class="frame-card '+(i===0?'active':'')+'" onclick="selectStockFrame(this,'+i+')"><img src="'+x.foto+'" alt="'+esc(nome)+'" style="width:100%;height:86px;object-fit:contain;border-radius:8px;background:#fff"><b>'+esc(nome)+'</b><div class="muted">'+(preco?fmtMoney(preco):'Preço a confirmar')+'</div></div>'}).join('');
+            })()}
           </div>
-          <div style="font-size:11px;color:var(--dim);margin-top:8px">Armações demonstrativas. Depois podemos vincular este espaço ao estoque/catálogo real da loja.</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:8px">Armações disponíveis no Estoque com foto.</div>
         </div>
         <div class="quote-box">
           <div class="premium-tag">COMPOSIÇÃO DO ORÇAMENTO</div>
@@ -1078,7 +1080,7 @@ function renderConsultor(){
             <div id="virtual-placeholder" class="virtual-placeholder"><div style="font-size:42px;margin-bottom:10px">👤👓</div><b>Foto frontal do cliente</b><div style="margin-top:6px">Envie uma foto para visualizar a composição escolhida.</div></div>
             <img id="virtual-photo" alt="Foto do cliente" style="display:none">
             <div id="virtual-face-guide" class="virtual-face-guide"><div class="face-oval"></div><div class="eye-line"></div><span>Centralize o rosto e mantenha os olhos na linha</span></div>
-            <div id="virtual-glasses" class="virtual-glasses"><span class="bridge"></span></div>
+            <div id="virtual-glasses" class="virtual-glasses"><span class="bridge"></span></div><img id="virtual-stock-frame" alt="Armação do estoque" style="display:none;position:absolute;left:50%;top:43%;width:46%;height:auto;max-height:none;object-fit:contain;transform:translate(-50%,-50%);pointer-events:none;z-index:4">
           </div>
           <div id="virtual-camera-panel" class="virtual-camera-panel" style="display:none">
             <div class="virtual-camera-live">
@@ -1126,6 +1128,9 @@ function renderConsultor(){
 }
 let consultFrame={name:'Clássica',price:189.90},consultLensQuote={name:'',price:0};
 function selectFrame(el,name,price){document.querySelectorAll('.frame-card').forEach(x=>x.classList.remove('active'));el.classList.add('active');consultFrame={name,price};updateConsultQuote();consultVirtualUpdate()}
+function getConsultStockFrames(){return (state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??1)>0 && (x.foto||x.imagem))}
+function selectStockFrame(el,i){const x=getConsultStockFrames()[i];if(!x)return;document.querySelectorAll('.frame-card').forEach(n=>n.classList.remove('active'));el.classList.add('active');consultFrame={name:x.nome||x.descricao||x.modelo||x.codigo||'Armação do estoque',price:Number(x.precoVenda||x.preco||x.valor||0),stock:x};const s=document.getElementById('virtual-stock-frame'),g=document.getElementById('virtual-glasses');if(s){s.src=x.foto||x.imagem;s.style.display=document.getElementById('virtual-photo')?.style.display==='block'?'block':'none'}if(g)g.style.display='none';updateConsultQuote();consultVirtualUpdate()}
+
 function consultPrice(l){for(const k of ['ar_blue','ar_clean','ar_risco']){const n=parseFloat(l?.[k]);if(Number.isFinite(n)&&n>0)return n}return 0}
 function updateConsultQuote(){const extra=parseFloat(document.getElementById('quote-treatment')?.value||0),total=consultFrame.price+consultLensQuote.price+extra;const a=document.getElementById('quote-frame'),b=document.getElementById('quote-lens'),c=document.getElementById('quote-total');if(a)a.textContent=consultFrame.name;if(b)b.textContent=consultLensQuote.name||'Selecione abaixo';if(c)c.textContent=fmtMoney(total);consultVirtualUpdate()}
 function getConsultQuote(){
@@ -1264,17 +1269,17 @@ function consultVirtualPhoto(input){
   if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl);
   consultVirtualPhotoUrl=URL.createObjectURL(file);
   const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),guide=document.getElementById('virtual-face-guide');
-  if(img){img.src=consultVirtualPhotoUrl;img.style.display='block'} if(ph)ph.style.display='none'; if(g)g.style.display='block'; if(guide)guide.classList.add('captured');
+  if(img){img.src=consultVirtualPhotoUrl;img.style.display='block'} if(ph)ph.style.display='none'; const sf=document.getElementById('virtual-stock-frame');if(consultFrame.stock&&sf){sf.src=consultFrame.stock.foto||consultFrame.stock.imagem;sf.style.display='block';if(g)g.style.display='none'}else if(g)g.style.display='block'; if(guide)guide.classList.add('captured');
   consultVirtualUpdate();
 }
 function consultVirtualReset(){
   if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl); consultVirtualPhotoUrl='';
   consultCloseCamera();
   const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),guide=document.getElementById('virtual-face-guide'),gal=document.getElementById('virtual-gallery');
-  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(guide)guide.classList.remove('captured'); if(gal)gal.value='';
+  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; const sf=document.getElementById('virtual-stock-frame');if(sf)sf.style.display='none'; if(guide)guide.classList.remove('captured'); if(gal)gal.value='';
 }
-function consultVirtualSize(v){const g=document.getElementById('virtual-glasses');if(g)g.style.width=v+'%'}
-function consultVirtualY(v){const g=document.getElementById('virtual-glasses');if(g)g.style.top=v+'%'}
+function consultVirtualSize(v){const g=document.getElementById('virtual-glasses'),s=document.getElementById('virtual-stock-frame');if(g)g.style.width=v+'%';if(s)s.style.width=v+'%'}
+function consultVirtualY(v){const g=document.getElementById('virtual-glasses'),s=document.getElementById('virtual-stock-frame');if(g)g.style.top=v+'%';if(s)s.style.top=v+'%'}
 function consultVirtualUpdate(showFeedback=false){
   const frame=document.getElementById('virtual-frame'),lens=document.getElementById('virtual-lens'),idx=document.getElementById('virtual-index'),tr=document.getElementById('virtual-treatment'),g=document.getElementById('virtual-glasses'),sel=document.getElementById('quote-treatment');
   const treatment=sel?.options[sel.selectedIndex]?.text||'Sem adicional';
@@ -2830,7 +2835,7 @@ function iniciarMedicaoManualSemIA(){
    +'<div id="manual_pup_instr" style="font-weight:800;margin-bottom:8px;color:#e30613">1/10 — Centro da pupila OD</div>'
    +'<div style="position:relative;border:2px solid #e30613;border-radius:10px;overflow:hidden"><img id="manual_pup_img" src="'+base64+'" style="display:block;width:100%;height:auto"><canvas id="manual_pup_canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas></div>'
    +'<div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button id="manual_pup_ok" class="btn btn-primary" disabled onclick="concluirMedicaoManualSemIA()">Calcular medidas</button></div></div>';
-  openModal(html,'modal-lg'); setTimeout(configurarMedicaoManualSemIA,80);
+  showModal(html,'modal-lg'); setTimeout(configurarMedicaoManualSemIA,80);
 }
 function configurarMedicaoManualSemIA(){
   const img=document.getElementById('manual_pup_img'),cv=document.getElementById('manual_pup_canvas'); if(!img||!cv)return;
