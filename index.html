@@ -282,6 +282,15 @@ input,select,textarea{font-size:16px!important}
 .progressive-clear{position:absolute;left:32.5%;top:0;width:35%;height:100%;z-index:3;clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);box-shadow:0 0 0 1000px rgba(255,255,255,0);transition:left .2s ease,width .2s ease;pointer-events:none}
 .progressive-clear:after{content:"";position:absolute;inset:0;backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}
 
+
+/* consultor-fixes-v3 */
+.progressive-blur{transition:width .2s ease;z-index:4}
+.progressive-clear{z-index:3}
+.consult-scene.scene-blue{background:linear-gradient(180deg,#9fd5ff 0%,#d9efff 42%,#809d75 43%,#53674f 100%)}
+.consult-scene.scene-blue .consult-lens.blue{background:rgba(55,145,255,.30)!important;box-shadow:inset 0 0 34px rgba(40,120,255,.30),0 0 18px rgba(45,135,255,.20)}
+.consult-scene.scene-blue .consult-caption{background:#1265b0;color:#fff}
+.consult-scene.scene-photo .consult-lens.photo{background:rgba(35,42,52,.48)!important}
+
 /* LCLASS LIGHT RED — homologação */
 :root{
   --bg:#f5f7fb;--surface:#ffffff;--surface2:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
@@ -1043,9 +1052,11 @@ function renderConsultor(){
             <img id="virtual-photo" alt="Foto do cliente" style="display:none">
             <div id="virtual-glasses" class="virtual-glasses"><span class="bridge"></span></div>
           </div>
-          <input id="virtual-file" type="file" accept="image/*" capture="user" style="display:none" onchange="consultVirtualPhoto(this)">
+          <input id="virtual-camera" type="file" accept="image/*" capture="user" style="display:none" onchange="consultVirtualPhoto(this)">
+          <input id="virtual-gallery" type="file" accept="image/*" style="display:none" onchange="consultVirtualPhoto(this)">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-            <button class="btn btn-primary" onclick="document.getElementById('virtual-file').click()">📷 Tirar / enviar foto</button>
+            <button class="btn btn-primary" onclick="document.getElementById('virtual-camera').click()">📷 Tirar foto</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('virtual-gallery').click()">🖼️ Escolher da galeria</button>
             <button class="btn btn-ghost" onclick="consultVirtualReset()">Remover foto</button>
           </div>
         </div>
@@ -1118,7 +1129,9 @@ function updateVisionFocus(v){
 }
 function updateVision(v){
   const n=Math.max(30,Math.min(70,parseInt(v)||35)),el=document.getElementById('vision-clear'),out=document.getElementById('vision-value'),lab=document.getElementById('progressive-label');
-  if(el){el.style.left=((100-n)/2)+'%';el.style.width=n+'%'}
+  const left=document.querySelector('.progressive-blur.left'),right=document.querySelector('.progressive-blur.right'),side=(100-n)/2;
+  if(el){el.style.left=side+'%';el.style.width=n+'%'}
+  if(left)left.style.width=side+'%'; if(right)right.style.width=side+'%';
   if(out)out.textContent=n+'%';
   if(lab)lab.textContent=n>=55?'Corredor amplo':n>=42?'Corredor intermediário':'Corredor estreito';
 }
@@ -1130,9 +1143,10 @@ function consultFiltrarTier(tier){
 }
 function consultReiniciar(){ renderConsultor(); window.scrollTo({top:0,behavior:'smooth'}); }
 function consultScene(tipo){
-  const a=document.getElementById('scene-left'),b=document.getElementById('scene-right'),c=document.getElementById('scene-caption');
+  const a=document.getElementById('scene-left'),b=document.getElementById('scene-right'),c=document.getElementById('scene-caption'),stage=a?.closest('.consult-scene');
   if(!a||!b)return; a.className='consult-lens left '+tipo; b.className='consult-lens right '+tipo;
-  const txt={clear:'Transparência e redução visual de reflexos',blue:'Demonstração visual para rotina com telas',photo:'Demonstração de escurecimento em ambiente externo'};
+  if(stage){stage.classList.remove('scene-blue','scene-photo','scene-clear');stage.classList.add('scene-'+tipo)}
+  const txt={clear:'Transparência e redução visual de reflexos',blue:'Filtro para telas ativo • redução visual ilustrativa da luz azul',photo:'Fotossensível ativo • escurecimento ilustrativo em ambiente externo'};
   c.textContent=txt[tipo]||txt.clear;
 }
 function consultDemo(tipo){
@@ -1166,8 +1180,8 @@ function consultVirtualPhoto(input){
 }
 function consultVirtualReset(){
   if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl); consultVirtualPhotoUrl='';
-  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),inp=document.getElementById('virtual-file');
-  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(inp)inp.value='';
+  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),cam=document.getElementById('virtual-camera'),gal=document.getElementById('virtual-gallery');
+  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(cam)cam.value=''; if(gal)gal.value='';
 }
 function consultVirtualSize(v){const g=document.getElementById('virtual-glasses');if(g)g.style.width=v+'%'}
 function consultVirtualY(v){const g=document.getElementById('virtual-glasses');if(g)g.style.top=v+'%'}
