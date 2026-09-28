@@ -1754,10 +1754,19 @@ function abrirFormReceita(id){
   showModal(`
     <div class="modal-header"><h2>${id?'Editar Receita':'Nova Receita'}</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Cliente <span class="req">*</span></label><select class="inp" id="rf_cli">${cliOpts}</select></div>
+      <div style="background:rgba(227,6,19,.06);border:1px solid rgba(227,6,19,.22);border-radius:12px;padding:14px;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:800;margin-bottom:4px">📐 Atendimento rápido</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">Você pode fotografar e medir primeiro. Cliente, profissional e dados da receita podem ser preenchidos depois.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button type="button" class="btn btn-primary" onclick="document.getElementById('rf_pupilometria_rapida')?.scrollIntoView({behavior:'smooth',block:'start'})">📷 Tirar foto e medir</button>
+          <button type="button" class="btn btn-secondary" onclick="abrirBuscaArmacaoReceita()">🔍 Buscar armação</button>
+        </div>
+        <div id="rf_armacao_selecionada" style="display:none;margin-top:10px"></div>
+      </div>
+      <div class="field"><label>Cliente <span style="color:var(--dim);font-weight:500">(opcional para medir)</span></label><select class="inp" id="rf_cli"><option value="">Atendimento sem cadastro</option>${cliOpts}</select></div>
       <div class="grid2">
-        <div class="field"><label>Profissional <span class="req">*</span></label><input class="inp" id="rf_prof" value="${esc(r.profissional)}" placeholder="Dr(a). Nome"/></div>
-        <div class="field"><label>Validade <span class="req">*</span></label><input class="inp" type="date" id="rf_val" value="${esc(r.validade)}"/></div>
+        <div class="field"><label>Profissional <span style="color:var(--dim);font-weight:500">(preencher ao salvar)</span></label><input class="inp" id="rf_prof" value="${esc(r.profissional)}" placeholder="Dr(a). Nome"/></div>
+        <div class="field"><label>Validade <span style="color:var(--dim);font-weight:500">(preencher ao salvar)</span></label><input class="inp" type="date" id="rf_val" value="${esc(r.validade)}"/></div>
       </div>
       <div class="section-div">Olho Direito (OD)</div>
       <div class="grid5">${buildRow('od')}</div>
@@ -1919,41 +1928,25 @@ function abrirFormReceita(id){
       </div>
       <div class="section-div">📸 Análise de DP e CO por IA</div>
 
-      <!-- INSTRUÇÕES DE FOTO -->
-      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:14px;margin-bottom:12px">
-        <div style="font-size:12px;color:#C9A84C;font-weight:700;margin-bottom:10px">📸 Como tirar a foto da armação</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <!-- Situação 1 -->
-          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px">
-            <div style="font-size:11px;color:#10b981;font-weight:700;margin-bottom:6px">✅ Armação com números</div>
-            <div style="font-size:11px;color:var(--muted);line-height:1.5">Fotografe a armação de frente. A IA lê os números gravados (ex: 52□19-147) e usa como escala automática.</div>
+      <div id="rf_pupilometria_rapida" style="background:rgba(227,6,19,.05);border:1px solid rgba(227,6,19,.18);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:800;margin-bottom:4px">📐 Pupilometria rápida</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px">Fotografe o cliente de frente usando a armação. Não é necessário cadastrar o cliente nem preencher a receita para fazer a medição.</div>
+        <div class="grid2">
+          <div class="field" style="margin-bottom:0">
+            <label>Referência física da armação (mm)</label>
+            <input class="inp" id="rf_ref_largura" placeholder="Ex: 135" type="number" style="font-size:14px"/>
           </div>
-          <!-- Situação 2 -->
-          <div style="background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.25);border-radius:8px;padding:10px">
-            <div style="font-size:11px;color:#818cf8;font-weight:700;margin-bottom:6px">📏 Armação sem números</div>
-            <div style="font-size:11px;color:var(--muted);line-height:1.5">Coloque a régua pupilar ao lado da armação e fotografe juntas. Informe a medida abaixo.</div>
-          </div>
-        </div>
-
-        <!-- Campo medida opcional -->
-        <div style="border-top:1px solid rgba(201,168,76,0.2);padding-top:10px">
-          <div style="font-size:11px;color:var(--dim);margin-bottom:8px">📐 <strong style="color:var(--muted)">Opcional:</strong> Se souber a medida, informe para maior precisão:</div>
-          <div class="grid2">
-            <div class="field" style="margin-bottom:0">
-              <label>Medida da armação (mm)</label>
-              <input class="inp" id="rf_ref_largura" placeholder="Ex: 135" type="number" style="font-size:14px"/>
-            </div>
-            <div class="field" style="margin-bottom:0">
-              <label>O que está medindo</label>
-              <select class="inp" id="rf_ref_tipo">
-                <option value="largura_total">Largura total (ponta a ponta)</option>
-                <option value="largura_lente">Largura de uma lente</option>
-                <option value="ponte">Ponte entre as lentes</option>
-                <option value="altura_lente">Altura de uma lente</option>
-              </select>
-            </div>
+          <div class="field" style="margin-bottom:0">
+            <label>O que está medindo</label>
+            <select class="inp" id="rf_ref_tipo">
+              <option value="largura_total">Largura total (ponta a ponta)</option>
+              <option value="largura_lente">Largura de uma lente</option>
+              <option value="ponte">Ponte entre as lentes</option>
+              <option value="altura_lente">Altura de uma lente</option>
+            </select>
           </div>
         </div>
+        <div style="font-size:11px;color:var(--dim);margin-top:8px">A referência em mm é usada para transformar a medição da foto em valores reais.</div>
       </div>
 
       <!-- Grade visual -->
@@ -1982,7 +1975,7 @@ function abrirFormReceita(id){
       <!-- Botões de captura -->
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:#C9A84C;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Pupilometria por Foto</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto frontal do cliente usando a armação. A IA auxilia na localização dos pontos pupilares; medidas em mm só são apresentadas quando houver referência física informada para calibração.</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Foto → marque os pontos → veja as medidas. Cadastro do cliente não é necessário para medir.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button type="button" class="btn btn-secondary" style="flex:1;min-width:120px" onclick="abrirCameraGuia()">📷 Escolher câmera</button>
           <input type="file" id="rf_foto_file" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this)"/>
@@ -2008,6 +2001,34 @@ function abrirFormReceita(id){
     </div>
   `,'modal-lg');
   setTimeout(sugerirLentes,150);
+}
+function abrirBuscaArmacaoReceita(){
+  const itens=(state.estoque||[]).filter(x=>Number(x.qtd??x.quantidade??0)>0);
+  const cards=itens.length?itens.map(x=>{
+    const nome=x.modelo||x.nome||x.descricao||x.codigo||'Armação';
+    const foto=x.foto||x.imagem||'';
+    return '<button type="button" class="btn btn-ghost" style="width:100%;display:grid;grid-template-columns:64px 1fr auto;align-items:center;text-align:left;gap:10px;margin-bottom:8px;padding:8px" onclick="selecionarArmacaoReceita(\''+String(x.id).replace(/'/g,"\\'")+'\')">'+
+      (foto?'<img src="'+foto+'" style="width:64px;height:48px;object-fit:contain;background:#fff;border-radius:7px">':'<div style="width:64px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:7px">👓</div>')+
+      '<span><b>'+esc(nome)+'</b><br><small style="color:var(--dim)">'+esc(x.marca||'')+(x.cor?' • '+esc(x.cor):'')+'</small></span><span class="badge badge-green">'+Number(x.qtd??x.quantidade??0)+' disp.</span></button>';
+  }).join(''):'<div class="empty"><div class="empty-icon">👓</div><p>Nenhuma armação disponível no estoque.</p></div>';
+  showModal('<div class="modal-header"><h2>🔍 Buscar armação no estoque</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div><div class="modal-body"><input class="inp" id="rf_busca_armacao" placeholder="Buscar por modelo, marca, cor ou código..." oninput="filtrarArmacoesReceita(this.value)" style="margin-bottom:12px"><div id="rf_lista_armacoes">'+cards+'</div></div>','modal-md');
+}
+function filtrarArmacoesReceita(q){
+  q=(q||'').toLowerCase().trim();
+  document.querySelectorAll('#rf_lista_armacoes button').forEach(b=>{b.style.display=!q||b.innerText.toLowerCase().includes(q)?'grid':'none'});
+}
+function selecionarArmacaoReceita(id){
+  const x=(state.estoque||[]).find(a=>String(a.id)===String(id)); if(!x)return;
+  window._rfArmacaoSelecionada=x;
+  closeModal();
+  setTimeout(()=>{
+    const box=document.getElementById('rf_armacao_selecionada'); if(!box)return;
+    const nome=x.modelo||x.nome||x.descricao||x.codigo||'Armação';
+    const foto=x.foto||x.imagem||'';
+    box.style.display='flex';box.style.alignItems='center';box.style.gap='10px';box.style.padding='8px';box.style.background='var(--surface2)';box.style.borderRadius='9px';
+    box.innerHTML=(foto?'<img src="'+foto+'" style="width:58px;height:44px;object-fit:contain;background:#fff;border-radius:6px">':'👓')+'<div><b>'+esc(nome)+'</b><div style="font-size:11px;color:var(--dim)">Armação vinculada ao atendimento</div></div>';
+    showToast('Armação selecionada do estoque','success');
+  },80);
 }
 function salvarReceita(id){
   const g=x=>document.getElementById(x)?.value?.trim()||'';
