@@ -3410,6 +3410,7 @@ async function analisarFotoIA(){
   }
 }
 
+let credBusca='';
 function renderCrediario(){
   const allP=state.crediario.flatMap(c=>c.pagamentos);
   const emAberto=allP.filter(p=>!p.pago).reduce((s,p)=>s+p.valor,0);
