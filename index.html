@@ -3043,8 +3043,8 @@ function desenharMedidas(imgEl, r) {
       ctx.restore();
     }
 
-    marcadorPupila(pupOD, ey, '#ff4444', 'OD '+dpOD+'mm');
-    marcadorPupila(pupOE, ey, '#ff4444', 'OE '+dpOE+'mm');
+    marcadorPupila(pupOD, Number(r.pupilOD_y)*h, '#ff4444', 'OD '+dpOD+'mm');
+    marcadorPupila(pupOE, Number(r.pupilOE_y)*h, '#22c55e', 'OE '+dpOE+'mm');
 
     // Linha central vertical (nariz)
     ctx.save();
@@ -3065,40 +3065,41 @@ function desenharMedidas(imgEl, r) {
   img.src = imgEl.src;
 }
 
-function calcularPupilometriaGeometrica(r, referenciaValor, referenciaTipo){
+function calcularPupilometriaGeometrica(r, referenciaValor, referenciaTipo, imgEl){
   const n=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null;};
   const ref=n(referenciaValor);
+  const W=Number(imgEl?.naturalWidth||r.imageWidth||0), H=Number(imgEl?.naturalHeight||r.imageHeight||0);
   const xOD=n(r.pupilOD_x), yOD=n(r.pupilOD_y), xOE=n(r.pupilOE_x), yOE=n(r.pupilOE_y);
   const od1=n(r.lensOD_x1), od2=n(r.lensOD_x2), oe1=n(r.lensOE_x1), oe2=n(r.lensOE_x2);
   const top=n(r.lensTop_y), bot=n(r.lensBot_y);
   const vals=[xOD,yOD,xOE,yOE,od1,od2,oe1,oe2,top,bot];
-  if(!(ref>0) || vals.some(v=>v===null||v<0||v>1)) return null;
-  const largOD=Math.abs(od2-od1), largOE=Math.abs(oe2-oe1);
-  const altura=Math.abs(bot-top);
-  const ponte=Math.abs(oe1-od2);
-  const larguraTotal=Math.max(od2,oe2)-Math.min(od1,oe1);
-  let unidadeRef=null;
-  if(referenciaTipo==='largura_total') unidadeRef=larguraTotal;
-  else if(referenciaTipo==='largura_lente') unidadeRef=(largOD+largOE)/2;
-  else if(referenciaTipo==='ponte') unidadeRef=ponte;
-  else if(referenciaTipo==='altura_lente') unidadeRef=altura;
-  if(!(unidadeRef>0)) return null;
-  const mmPorUnidade=ref/unidadeRef;
-  const centroPonte=(od2+oe1)/2;
+  if(!(ref>0)||!(W>0)||!(H>0)||vals.some(v=>v===null||v<0||v>1)) return null;
+  const pxX=v=>v*W, pxY=v=>v*H;
+  const largOD=Math.abs(pxX(od2)-pxX(od1)), largOE=Math.abs(pxX(oe2)-pxX(oe1));
+  const altura=Math.abs(pxY(bot)-pxY(top));
+  const ponte=Math.abs(pxX(oe1)-pxX(od2));
+  const larguraTotal=Math.max(pxX(od2),pxX(oe2))-Math.min(pxX(od1),pxX(oe1));
+  let pxRef=null;
+  if(referenciaTipo==='largura_total') pxRef=larguraTotal;
+  else if(referenciaTipo==='largura_lente') pxRef=(largOD+largOE)/2;
+  else if(referenciaTipo==='ponte') pxRef=ponte;
+  else if(referenciaTipo==='altura_lente') pxRef=altura;
+  if(!(pxRef>0)) return null;
+  const mmPorPx=ref/pxRef, centroPonte=(pxX(od2)+pxX(oe1))/2;
   const round=v=>Math.round(v*100)/100;
   return {
-    dpOD:round(Math.abs(centroPonte-xOD)*mmPorUnidade),
-    dpOE:round(Math.abs(xOE-centroPonte)*mmPorUnidade),
-    dpTotal:round(Math.abs(xOE-xOD)*mmPorUnidade),
-    coOD:round(Math.abs(bot-yOD)*mmPorUnidade),
-    coOE:round(Math.abs(bot-yOE)*mmPorUnidade),
-    larguraArmacao:round(larguraTotal*mmPorUnidade),
-    alturaLente:round(altura*mmPorUnidade),
-    ponteArmacao:round(ponte*mmPorUnidade),
-    escalaUsada:round(mmPorUnidade)
+    dpOD:round(Math.abs(centroPonte-pxX(xOD))*mmPorPx),
+    dpOE:round(Math.abs(pxX(xOE)-centroPonte)*mmPorPx),
+    dpTotal:round(Math.abs(pxX(xOE)-pxX(xOD))*mmPorPx),
+    coOD:round(Math.abs(pxY(bot)-pxY(yOD))*mmPorPx),
+    coOE:round(Math.abs(pxY(bot)-pxY(yOE))*mmPorPx),
+    larguraArmacao:round(larguraTotal*mmPorPx),
+    alturaLente:round(altura*mmPorPx),
+    ponteArmacao:round(ponte*mmPorPx),
+    escalaUsada:round(mmPorPx),
+    calibracao:'pixel'
   };
 }
-
 function validarCapturaPupilometria(r){
   const n=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null;};
   const xOD=n(r.pupilOD_x), yOD=n(r.pupilOD_y), xOE=n(r.pupilOE_x), yOE=n(r.pupilOE_y);
@@ -3188,12 +3189,12 @@ function salvarAjustePupilar(){
   const rv=(document.getElementById('rf_ref_largura')||{value:''}).value.trim();
   const rt=(document.getElementById('rf_ref_tipo')||{value:'largura_total'}).value;
   const qualidade=validarCapturaPupilometria(_pupilometriaAtual);
-  const medidas=qualidade.ok?calcularPupilometriaGeometrica(_pupilometriaAtual,rv,rt):null;
+  const imgEl=document.querySelector('#rf_foto_preview img');
+  const medidas=qualidade.ok?calcularPupilometriaGeometrica(_pupilometriaAtual,rv,rt,imgEl):null;
   if(!medidas){showToast('Ajuste não passou pela validação geométrica','error');return;}
   Object.assign(_pupilometriaAtual,medidas);
   [['rf_dpD','dpOD'],['rf_dpE','dpOE'],['rf_coD','coOD'],['rf_coE','coOE']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=_pupilometriaAtual[k];});
   closeModal();
-  const imgEl=document.querySelector('#rf_foto_preview img');
   if(imgEl)desenharMedidas(imgEl,_pupilometriaAtual);
   showToast('Pontos ajustados e medidas recalculadas','success');
 }
@@ -3211,7 +3212,8 @@ async function analisarFotoIA(){
     var r=await chamarIABackend('pupilometria',base64Full,{referenciaValor:rv,referenciaTipo:rt});
     _pupilometriaAtual=r;
     var qualidade=validarCapturaPupilometria(r);
-    var medidas=qualidade.ok?calcularPupilometriaGeometrica(r,rv,rt):null;
+    var imgEl=document.querySelector('#rf_foto_preview img');
+    var medidas=qualidade.ok?calcularPupilometriaGeometrica(r,rv,rt,imgEl):null;
     var escalaConfiavel=!!medidas;
     // A IA fornece os pontos. Os milímetros são calculados localmente a partir da referência física.
     if(medidas){
@@ -3224,14 +3226,14 @@ async function analisarFotoIA(){
     if(escalaConfiavel&&r.dpOE){var el=document.getElementById('rf_dpE');if(el)el.value=r.dpOE;}
     if(escalaConfiavel&&r.coOD){var el=document.getElementById('rf_coD');if(el)el.value=r.coOD;}
     if(escalaConfiavel&&r.coOE){var el=document.getElementById('rf_coE');if(el)el.value=r.coOE;}
-    var imgEl=document.querySelector('#rf_foto_preview img');
     if(imgEl&&r)desenharMedidas(imgEl,r);
     var nOD=Number(String(r.dpOD||'').replace(',','.')), nOE=Number(String(r.dpOE||'').replace(',','.'));
     var dpT=r.dpTotal||((Number.isFinite(nOD)&&nOD>0&&Number.isFinite(nOE)&&nOE>0)?(nOD+nOE).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2}):'---');
     var cc=r.compatibilidade==='Sim'?'#10b981':r.compatibilidade==='Parcial'?'#C9A84C':'#ef4444';
-    var itens=[['DP Total',dpT+'mm','#C9A84C'],['DP OD',(r.dpOD||'---')+'mm','#C9A84C'],['DP OE',(r.dpOE||'---')+'mm','#C9A84C'],
-      ['CO OD',(r.coOD||'---')+'mm','#818cf8'],['CO OE',(r.coOE||'---')+'mm','#818cf8'],
-      ['Largura',(r.larguraArmacao||'---')+'mm','#10b981'],['Altura',(r.alturaLente||'---')+'mm','#10b981'],['Ponte',(r.ponteArmacao||'---')+'mm','#10b981']];
+    var mm=v=>(v!==''&&v!=null&&v!=='---')?v+' mm':'—';
+    var itens=[['DP Total',mm(dpT),'#C9A84C'],['DNP OD',mm(r.dpOD),'#C9A84C'],['DNP OE',mm(r.dpOE),'#C9A84C'],
+      ['Altura OD',mm(r.coOD),'#818cf8'],['Altura OE',mm(r.coOE),'#818cf8'],
+      ['Largura',mm(r.larguraArmacao),'#10b981'],['Altura lente',mm(r.alturaLente),'#10b981'],['Ponte',mm(r.ponteArmacao),'#10b981']];
     res.innerHTML='<div style="background:#080e1a;border:1px solid #C9A84C;border-radius:12px;padding:14px">'
       +'<div style="font-size:12px;color:#C9A84C;font-weight:700;margin-bottom:10px">Pupilometria IA</div>'
       +(r.numerosArmacao&&r.numerosArmacao.length>2&&r.numerosArmacao.indexOf('null')<0?'<div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:8px;margin-bottom:8px;font-size:12px">Armacao: <strong>'+r.numerosArmacao+'</strong></div>':'')
