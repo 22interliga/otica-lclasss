@@ -2889,7 +2889,8 @@ function configurarMedicaoManualSemIA(){
   }; if(img.complete)start();else img.onload=start;
 }
 function concluirMedicaoManualSemIA(){
-  const a=window._manualPup?.p;if(!a||a.length<10)return;
+  try{
+  const a=window._manualPup?.p;if(!a||a.length<10){showToast('Marque os 10 pontos antes de calcular','error');return;}
   const top=(a[6].y+a[8].y)/2,bot=(a[7].y+a[9].y)/2;
   const r={pupilOD_x:a[0].x,pupilOD_y:a[0].y,pupilOE_x:a[1].x,pupilOE_y:a[1].y,lensOD_x1:a[2].x,lensOD_x2:a[3].x,lensOE_x1:a[4].x,lensOE_x2:a[5].x,lensTop_y:top,lensBot_y:bot,compatibilidade:'Medição manual',observacoes:'Pontos marcados manualmente; confirme as medidas antes de finalizar.'};
   const cfg=window._manualPupConfig||{},rv=cfg.ref||'',rt=cfg.tipo||'largura_total';
@@ -2898,6 +2899,7 @@ function concluirMedicaoManualSemIA(){
   closeModal();const im=document.querySelector('#rf_foto_preview img');if(im)desenharMedidas(im,r);
   const res=document.getElementById('rf_ia_resultado');if(res){res.style.display='block';res.innerHTML='<div style="background:#fff;border:2px solid #e30613;border-radius:12px;padding:12px"><div style="font-weight:900;color:#e30613;margin-bottom:8px">MEDIDAS NUMÉRICAS</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">'+[['DP Total',r.dpTotal],['DNP OD',r.dpOD],['DNP OE',r.dpOE],['Altura OD',r.coOD],['Altura OE',r.coOE],['Ponte',r.ponteArmacao]].map(x=>'<div style="padding:9px;border:1px solid #e2e8f0;border-radius:8px;text-align:center"><small>'+x[0]+'</small><div style="font-size:18px;font-weight:900">'+x[1]+' mm</div></div>').join('')+'</div><div style="font-size:10px;color:var(--dim);margin-top:8px">Medição geométrica manual calibrada pela referência física informada.</div></div>';}
   showToast('Medidas calculadas sem IA','success');
+  }catch(e){console.error('Erro pupilometria manual',e);showToast('Erro ao calcular: '+(e?.message||'falha inesperada'),'error');}
 }
 
 function desenharMedidas(imgEl, r) {
