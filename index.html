@@ -2870,6 +2870,7 @@ function iniciarMedicaoManualSemIA(){
   if(!base64){showToast('Capture ou envie uma foto primeiro','error');return;}
   const ref=Number(String(document.getElementById('rf_ref_largura')?.value||'').replace(',','.'));
   if(!(ref>0)){showToast('Informe uma medida física da armação para calcular em mm','error');return;}
+  window._manualPupConfig={ref:ref,tipo:document.getElementById('rf_ref_tipo')?.value||'largura_total',foto:base64};
   const html='<div style="padding:18px"><div style="font-size:18px;font-weight:800;color:#e30613;margin-bottom:6px">Medição sem IA</div>'
    +'<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Marque 10 pontos na ordem indicada. O cálculo é geométrico e usa a referência física informada.</div>'
    +'<div id="manual_pup_instr" style="font-weight:800;margin-bottom:8px;color:#e30613">1/10 — Centro da pupila OD</div>'
@@ -2891,8 +2892,8 @@ function concluirMedicaoManualSemIA(){
   const a=window._manualPup?.p;if(!a||a.length<10)return;
   const top=(a[6].y+a[8].y)/2,bot=(a[7].y+a[9].y)/2;
   const r={pupilOD_x:a[0].x,pupilOD_y:a[0].y,pupilOE_x:a[1].x,pupilOE_y:a[1].y,lensOD_x1:a[2].x,lensOD_x2:a[3].x,lensOE_x1:a[4].x,lensOE_x2:a[5].x,lensTop_y:top,lensBot_y:bot,compatibilidade:'Medição manual',observacoes:'Pontos marcados manualmente; confirme as medidas antes de finalizar.'};
-  const rv=document.getElementById('rf_ref_largura')?.value||'',rt=document.getElementById('rf_ref_tipo')?.value||'largura_total';
-  const img=document.querySelector('#rf_foto_preview img'),m=calcularPupilometriaGeometrica(r,rv,rt,img);if(!m){showToast('Não foi possível calibrar a medida','error');return;}Object.assign(r,m);_pupilometriaAtual=r;
+  const cfg=window._manualPupConfig||{},rv=cfg.ref||'',rt=cfg.tipo||'largura_total';
+  const img=document.getElementById('manual_pup_img'),m=calcularPupilometriaGeometrica(r,rv,rt,img);if(!m){showToast('Não foi possível calibrar a medida','error');return;}Object.assign(r,m);_pupilometriaAtual=r;
   [['rf_dpD','dpOD'],['rf_dpE','dpOE'],['rf_coD','coOD'],['rf_coE','coOE'],['rf_dpL','dpTotal']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=r[k];});
   closeModal();const im=document.querySelector('#rf_foto_preview img');if(im)desenharMedidas(im,r);
   const res=document.getElementById('rf_ia_resultado');if(res){res.style.display='block';res.innerHTML='<div style="background:#fff;border:2px solid #e30613;border-radius:12px;padding:12px"><div style="font-weight:900;color:#e30613;margin-bottom:8px">MEDIDAS NUMÉRICAS</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">'+[['DP Total',r.dpTotal],['DNP OD',r.dpOD],['DNP OE',r.dpOE],['Altura OD',r.coOD],['Altura OE',r.coOE],['Ponte',r.ponteArmacao]].map(x=>'<div style="padding:9px;border:1px solid #e2e8f0;border-radius:8px;text-align:center"><small>'+x[0]+'</small><div style="font-size:18px;font-weight:900">'+x[1]+' mm</div></div>').join('')+'</div><div style="font-size:10px;color:var(--dim);margin-top:8px">Medição geométrica manual calibrada pela referência física informada.</div></div>';}
