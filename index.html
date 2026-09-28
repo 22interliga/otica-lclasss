@@ -2904,7 +2904,7 @@ function desfazerUltimoPontoManual(){
 }
 function configurarMedicaoManualSemIA(){
   const img=document.getElementById('manual_pup_img'),cv=document.getElementById('manual_pup_canvas'); if(!img||!cv)return;
-  const nomes=['Centro da pupila OD','Centro da pupila OE','Lente OD — extremo externo','Lente OD — extremo junto ao nariz','Lente OE — extremo junto ao nariz','Lente OE — extremo externo','Topo da lente OD','Base da lente OD','Topo da lente OE','Base da lente OE'];
+  const nomes=['Centro da pupila — esquerda da FOTO','Centro da pupila — direita da FOTO','Lente esquerda da FOTO — extremo esquerdo','Lente esquerda da FOTO — extremo direito','Lente direita da FOTO — extremo esquerdo','Lente direita da FOTO — extremo direito','Lente esquerda da FOTO — topo','Lente esquerda da FOTO — base','Lente direita da FOTO — topo','Lente direita da FOTO — base'];
   const start=()=>{cv.width=img.naturalWidth||1000;cv.height=img.naturalHeight||700;window._manualPup={p:[],nomes};
     const lupa=document.getElementById('manual_pup_lupa'),lc=document.getElementById('manual_pup_lupa_canvas'),stage=document.getElementById('manual_pup_stage');
     const atualizarLupa=ev=>{if(!lupa||!lc||!stage)return;const b=cv.getBoundingClientRect(),sb=stage.getBoundingClientRect(),cx=(ev.clientX-b.left)/b.width*cv.width,cy=(ev.clientY-b.top)/b.height*cv.height,ctx=lc.getContext('2d'),zoom=3.2,sw=lc.width/zoom,sh=lc.height/zoom;ctx.clearRect(0,0,lc.width,lc.height);ctx.drawImage(img,cx-sw/2,cy-sh/2,sw,sh,0,0,lc.width,lc.height);const lx=Math.max(6,Math.min(sb.width-138,(ev.clientX-sb.left)+24)),ly=Math.max(6,Math.min(sb.height-138,(ev.clientY-sb.top)-150));lupa.style.left=lx+'px';lupa.style.top=ly+'px';lupa.style.display='block';};
@@ -2927,7 +2927,7 @@ function concluirMedicaoManualSemIA(){
     const cfg=window._manualPupConfig||{};
     const img=document.getElementById('manual_pup_img');
     const top=(a[6].y+a[8].y)/2,bot=(a[7].y+a[9].y)/2;
-    const r={pupilOD_x:a[0].x,pupilOD_y:a[0].y,pupilOE_x:a[1].x,pupilOE_y:a[1].y,lensOD_x1:a[2].x,lensOD_x2:a[3].x,lensOE_x1:a[4].x,lensOE_x2:a[5].x,lensTop_y:top,lensBot_y:bot,lensOD_top_y:a[6].y,lensOD_bot_y:a[7].y,lensOE_top_y:a[8].y,lensOE_bot_y:a[9].y,compatibilidade:'Medição manual',observacoes:'Pontos marcados manualmente; confirme as medidas antes de finalizar.'};
+    const r={pupilOD_x:a[0].x,pupilOD_y:a[0].y,pupilOE_x:a[1].x,pupilOE_y:a[1].y,lensOD_x1:Math.min(a[2].x,a[3].x),lensOD_x2:Math.max(a[2].x,a[3].x),lensOE_x1:Math.min(a[4].x,a[5].x),lensOE_x2:Math.max(a[4].x,a[5].x),lensTop_y:top,lensBot_y:bot,lensOD_top_y:a[6].y,lensOD_bot_y:a[7].y,lensOE_top_y:a[8].y,lensOE_bot_y:a[9].y,compatibilidade:'Medição manual',observacoes:'Pontos marcados manualmente por posição na foto; confirme as medidas antes de finalizar.'};
     const m=calcularPupilometriaGeometrica(r,cfg.ref||'',cfg.tipo||'largura_lente',img);
     if(!m){showToast('Não foi possível calibrar a medida. Confira a referência e os pontos.','error');return;}
     Object.assign(r,m);
