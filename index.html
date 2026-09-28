@@ -1979,7 +1979,7 @@ function abrirFormReceita(id){
         <div style="font-size:12px;font-weight:700;color:#C9A84C;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Pupilometria por Foto</div>
         <div style="font-size:12px;color:var(--dim);margin-bottom:10px">Tire uma foto frontal do cliente usando a armação. A IA auxilia na localização dos pontos pupilares; medidas em mm só são apresentadas quando houver referência física informada para calibração.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button type="button" class="btn btn-secondary" style="flex:1;min-width:120px" onclick="abrirCameraGuia()">📷 Câmera com Guia</button>
+          <button type="button" class="btn btn-secondary" style="flex:1;min-width:120px" onclick="abrirCameraGuia()">📷 Escolher câmera</button>
           <input type="file" id="rf_foto_file" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this)"/>
           <label style="cursor:pointer;flex:1;min-width:120px">
             <input type="file" id="rf_foto_gallery" accept="image/*" style="display:none" onchange="previewFoto(this)"/>
@@ -2003,6 +2003,23 @@ function abrirFormReceita(id){
     </div>
   `,'modal-lg');
   setTimeout(sugerirLentes,150);
+}
+function salvarReceita(id){
+  const g=x=>document.getElementById(x)?.value?.trim()||'';
+  const clienteId=g('rf_cli'), profissional=g('rf_prof'), validade=g('rf_val');
+  if(!clienteId)return showToast('Selecione o cliente','error');
+  if(!profissional)return showToast('Informe o profissional','error');
+  if(!validade)return showToast('Informe a validade da receita','error');
+  const ativa=!!document.getElementById('rf_ativa')?.checked;
+  if(ativa) state.receitas=state.receitas.map(x=>({...x,ativa:false}));
+  const anterior=id?state.receitas.find(x=>String(x.id)===String(id)):null;
+  const data={...(anterior||{}),id:anterior?.id||uid(),clienteId:clienteId,profissional,validade,data:anterior?.data||today(),
+    odEsfera:g('rf_odEsfera'),odCilindro:g('rf_odCilindro'),odEixo:g('rf_odEixo'),odAdicao:g('rf_odAdicao'),odDnp:g('rf_odDnp'),
+    oeEsfera:g('rf_oeEsfera'),oeCilindro:g('rf_oeCilindro'),oeEixo:g('rf_oeEixo'),oeAdicao:g('rf_oeAdicao'),oeDnp:g('rf_oeDnp'),
+    obs:g('rf_obs'),tipoLente:g('rf_tipo_lente'),dpDir:g('rf_dpD'),coDir:g('rf_coD'),dpEsq:g('rf_dpE'),coEsq:g('rf_coE'),dpLonge:g('rf_dpL'),dpPerto:g('rf_dpP'),
+    foto:document.getElementById('rf_foto_hidden')?.value||anterior?.foto||'',ativa};
+  if(anterior) state.receitas=state.receitas.map(x=>String(x.id)===String(id)?data:x); else state.receitas.push(data);
+  saveAll();closeModal();renderReceituario();showToast(anterior?'Receita atualizada!':'Receita salva!','success');
 }
 let _cameraStream = null;
 
@@ -2432,7 +2449,7 @@ function capturarFotoComGrade(){
   fecharCamera();
   const btn = document.getElementById('btn_analisar_ia');
   if(btn) btn.style.display = 'inline-flex';
-  showToast('Foto capturada! Clique em Analisar com IA.', 'success');
+  showToast('Foto pronta. Use Medir sem IA. A análise com IA estará disponível quando o serviço for ativado.','success');
 }
 
 function calcDpTotal(){
@@ -2753,7 +2770,7 @@ function tirarFotoGuia(vid){
     }
     var btnIA=document.getElementById('btn_analisar_ia');
     if(btnIA) btnIA.style.display='block';
-    showToast('Foto capturada! Toque em Analisar com IA','success');
+    showToast('Foto pronta. Use Medir sem IA. A análise com IA estará disponível quando o serviço for ativado.','success');
   }catch(e){
     showToast('Erro ao capturar: '+e.message,'error');
   }
