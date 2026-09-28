@@ -1970,19 +1970,19 @@ function abrirFormReceita(id){
         <div class="grid2">
           <div class="field" style="margin-bottom:0">
             <label>Referência física da armação (mm)</label>
-            <input class="inp" id="rf_ref_largura" placeholder="Ex: 135" type="number" style="font-size:14px"/>
+            <input class="inp" id="rf_ref_largura" placeholder="Ex: 52" type="number" step="0.1" style="font-size:14px"/>
           </div>
           <div class="field" style="margin-bottom:0">
             <label>O que está medindo</label>
             <select class="inp" id="rf_ref_tipo">
-              <option value="largura_total">Largura total (ponta a ponta)</option>
-              <option value="largura_lente">Largura de uma lente</option>
+              <option value="largura_lente" selected>Largura de uma lente (recomendado)</option>
+              <option value="largura_total">Largura total entre as bordas marcadas</option>
               <option value="ponte">Ponte entre as lentes</option>
               <option value="altura_lente">Altura de uma lente</option>
             </select>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--dim);margin-top:8px">A referência em mm é usada para transformar a medição da foto em valores reais.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:8px">Prefira a largura da lente gravada na armação (ex.: em 52□18, informe 52). A referência deve corresponder exatamente aos pontos marcados.</div>
       </div>
 
       <!-- Grade visual -->
@@ -2920,9 +2920,21 @@ function concluirMedicaoManualSemIA(){
     const img=document.getElementById('manual_pup_img');
     const top=(a[6].y+a[8].y)/2,bot=(a[7].y+a[9].y)/2;
     const r={pupilOD_x:a[0].x,pupilOD_y:a[0].y,pupilOE_x:a[1].x,pupilOE_y:a[1].y,lensOD_x1:a[2].x,lensOD_x2:a[3].x,lensOE_x1:a[4].x,lensOE_x2:a[5].x,lensTop_y:top,lensBot_y:bot,lensOD_top_y:a[6].y,lensOD_bot_y:a[7].y,lensOE_top_y:a[8].y,lensOE_bot_y:a[9].y,compatibilidade:'Medição manual',observacoes:'Pontos marcados manualmente; confirme as medidas antes de finalizar.'};
-    const m=calcularPupilometriaGeometrica(r,cfg.ref||'',cfg.tipo||'largura_total',img);
+    const m=calcularPupilometriaGeometrica(r,cfg.ref||'',cfg.tipo||'largura_lente',img);
     if(!m){showToast('Não foi possível calibrar a medida. Confira a referência e os pontos.','error');return;}
-    Object.assign(r,m);_pupilometriaAtual=r;window._manualPupResultado=r;
+    Object.assign(r,m);
+    const erros=[];
+    if(!(r.dpTotal>=45&&r.dpTotal<=85))erros.push('DP total fora da faixa de validação (45–85 mm)');
+    if(!(r.dpOD>=20&&r.dpOD<=45)||!(r.dpOE>=20&&r.dpOE<=45))erros.push('DNP monocular fora da faixa de validação (20–45 mm)');
+    if(!(r.coOD>=5&&r.coOD<=45)||!(r.coOE>=5&&r.coOE<=45))erros.push('altura pupilar fora da faixa de validação (5–45 mm)');
+    if(!(r.ponteArmacao>=5&&r.ponteArmacao<=35))erros.push('ponte fora da faixa de validação (5–35 mm)');
+    if(Math.abs((r.dpOD+r.dpOE)-r.dpTotal)>1.5)erros.push('DP total não confere com a soma das DNPs');
+    if(erros.length){
+      const box=document.querySelector('#manual-pup-overlay .modal');
+      if(box)box.innerHTML='<div style="padding:18px"><div style="font-size:20px;font-weight:900;color:#e30613;margin-bottom:8px">Medição precisa ser refeita</div><div style="font-size:13px;line-height:1.6;margin-bottom:12px">O sistema bloqueou valores geometricamente incompatíveis:</div><div style="padding:12px;border:1px solid #fecaca;background:#fef2f2;border-radius:9px;color:#991b1b">'+erros.map(e=>'• '+e).join('<br>')+'</div><div style="font-size:12px;color:var(--muted);margin-top:12px">Confira a referência física e refaça os pontos. Para maior estabilidade, use a largura de uma lente gravada na armação.</div><div class="modal-footer"><button type="button" class="btn btn-primary" onclick="closeManualPupModal()">Voltar e medir novamente</button></div></div>';
+      showToast('Medição bloqueada por inconsistência geométrica','error');return;
+    }
+    _pupilometriaAtual=r;window._manualPupResultado=r;
     const cards=[['DP Total',r.dpTotal],['DNP OD',r.dpOD],['DNP OE',r.dpOE],['Altura OD',r.coOD],['Altura OE',r.coOE],['Ponte',r.ponteArmacao]].map(x=>'<div style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center"><small>'+x[0]+'</small><div style="font-size:18px;font-weight:900">'+x[1]+' mm</div></div>').join('');
     const box=document.querySelector('#manual-pup-overlay .modal');
     if(box){
