@@ -291,6 +291,22 @@ input,select,textarea{font-size:16px!important}
 .consult-scene.scene-blue .consult-caption{background:#1265b0;color:#fff}
 .consult-scene.scene-photo .consult-lens.photo{background:rgba(35,42,52,.48)!important}
 
+
+/* consultor-polish-v4 */
+.virtual-face-guide{position:absolute;inset:0;z-index:5;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.virtual-face-guide .face-oval{width:43%;height:68%;border:2px dashed rgba(227,6,19,.72);border-radius:48%}
+.virtual-face-guide .eye-line{position:absolute;left:22%;right:22%;top:43%;border-top:2px dashed rgba(227,6,19,.55)}
+.virtual-face-guide span{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:max-content;max-width:85%;background:rgba(255,255,255,.92);border:1px solid #f0b5b9;border-radius:20px;padding:7px 12px;font-size:11px;font-weight:700;color:#7f1d1d;text-align:center}
+.virtual-face-guide.captured{display:none}
+.consult-scene{background:linear-gradient(180deg,#f8fafc,#e5e7eb 55%,#d1d5db)!important}
+.consult-scene.scene-blue{background:linear-gradient(180deg,#e9eef3,#dce3e9 55%,#cfd6dc)!important}
+.consult-scene.scene-blue .consult-lens.blue{background:rgba(40,135,255,.38)!important;box-shadow:inset 0 0 40px rgba(25,105,225,.38),0 0 16px rgba(35,125,245,.24)!important}
+.consult-scene.scene-clear .consult-lens.clear,.consult-lens.clear{background:rgba(210,244,231,.20)!important;box-shadow:inset 0 0 34px rgba(45,160,115,.16)!important}
+.consult-scene.scene-clear .consult-caption{background:rgba(18,120,82,.88)!important;color:#fff!important}
+.consult-caption{color:#fff!important}
+.consult-toolbar .btn,.index-buttons .btn{position:relative;z-index:1}
+.consult-toolbar .btn:active,.consult-toolbar .btn:focus,.index-buttons .btn.active{color:#fff!important}
+
 /* LCLASS LIGHT RED — homologação */
 :root{
   --bg:#f5f7fb;--surface:#ffffff;--surface2:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
@@ -1050,6 +1066,7 @@ function renderConsultor(){
           <div id="virtual-stage" class="virtual-stage">
             <div id="virtual-placeholder" class="virtual-placeholder"><div style="font-size:42px;margin-bottom:10px">👤👓</div><b>Foto frontal do cliente</b><div style="margin-top:6px">Envie uma foto para visualizar a composição escolhida.</div></div>
             <img id="virtual-photo" alt="Foto do cliente" style="display:none">
+            <div id="virtual-face-guide" class="virtual-face-guide"><div class="face-oval"></div><div class="eye-line"></div><span>Centralize o rosto e mantenha os olhos na linha</span></div>
             <div id="virtual-glasses" class="virtual-glasses"><span class="bridge"></span></div>
           </div>
           <input id="virtual-camera" type="file" accept="image/*" capture="user" style="display:none" onchange="consultVirtualPhoto(this)">
@@ -1068,7 +1085,7 @@ function renderConsultor(){
           <div class="quote-row"><span>Tratamento</span><b id="virtual-treatment">Sem adicional</b></div>
           <div class="field" style="margin-top:14px"><label>Tamanho da armação na foto</label><input type="range" min="30" max="70" value="46" oninput="consultVirtualSize(this.value)"></div>
           <div class="field"><label>Altura da armação na foto</label><input type="range" min="25" max="65" value="43" oninput="consultVirtualY(this.value)"></div>
-          <button class="btn btn-secondary" style="width:100%" onclick="consultVirtualUpdate()">Atualizar composição</button>
+          <button class="btn btn-secondary" style="width:100%" onclick="consultVirtualUpdate(true)">Atualizar composição</button>
           <div class="virtual-note">Pré-visualização comercial ilustrativa. O encaixe, a espessura e o efeito do tratamento podem variar no produto final.</div>
         </div>
       </div>
@@ -1174,22 +1191,23 @@ function consultVirtualPhoto(input){
   const file=input?.files?.[0]; if(!file)return;
   if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl);
   consultVirtualPhotoUrl=URL.createObjectURL(file);
-  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses');
-  if(img){img.src=consultVirtualPhotoUrl;img.style.display='block'} if(ph)ph.style.display='none'; if(g)g.style.display='block';
+  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),guide=document.getElementById('virtual-face-guide');
+  if(img){img.src=consultVirtualPhotoUrl;img.style.display='block'} if(ph)ph.style.display='none'; if(g)g.style.display='block'; if(guide)guide.classList.add('captured');
   consultVirtualUpdate();
 }
 function consultVirtualReset(){
   if(consultVirtualPhotoUrl)URL.revokeObjectURL(consultVirtualPhotoUrl); consultVirtualPhotoUrl='';
-  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),cam=document.getElementById('virtual-camera'),gal=document.getElementById('virtual-gallery');
-  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(cam)cam.value=''; if(gal)gal.value='';
+  const img=document.getElementById('virtual-photo'),ph=document.getElementById('virtual-placeholder'),g=document.getElementById('virtual-glasses'),guide=document.getElementById('virtual-face-guide'),cam=document.getElementById('virtual-camera'),gal=document.getElementById('virtual-gallery');
+  if(img){img.src='';img.style.display='none'} if(ph)ph.style.display='block'; if(g)g.style.display='none'; if(guide)guide.classList.remove('captured'); if(cam)cam.value=''; if(gal)gal.value='';
 }
 function consultVirtualSize(v){const g=document.getElementById('virtual-glasses');if(g)g.style.width=v+'%'}
 function consultVirtualY(v){const g=document.getElementById('virtual-glasses');if(g)g.style.top=v+'%'}
-function consultVirtualUpdate(){
+function consultVirtualUpdate(showFeedback=false){
   const frame=document.getElementById('virtual-frame'),lens=document.getElementById('virtual-lens'),idx=document.getElementById('virtual-index'),tr=document.getElementById('virtual-treatment'),g=document.getElementById('virtual-glasses'),sel=document.getElementById('quote-treatment');
   const treatment=sel?.options[sel.selectedIndex]?.text||'Sem adicional';
   if(frame)frame.textContent=consultFrame.name;if(lens)lens.textContent=consultLensQuote.name||'Selecione uma lente';if(idx)idx.textContent=consultLensIndex.toFixed(2);if(tr)tr.textContent=treatment;
   if(g){g.className='virtual-glasses '+(consultFrame.name==='Urbana'?'frame-urbana':consultFrame.name==='Premium'?'frame-premium':'frame-classica');const val=String(sel?.value||'0');if(val==='80')g.classList.add('treat-ar');else if(val==='120')g.classList.add('treat-blue');else if(val==='180')g.classList.add('treat-photo');}
+  if(showFeedback)showToast('Composição atualizada na prova virtual','success');
 }
 
 function toggleConsultFullscreen(){
