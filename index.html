@@ -510,6 +510,29 @@ function load(k){
 }
 function save(k,v){DB.set(k,v);}
 
+function exportarBackupDados(){
+  const dados={};
+  ['clientes','receitas','crediario','vendas','agenda','estoque'].forEach(k=>{
+    const salvo=DB.get(k);
+    dados[k]=salvo!==null&&salvo!==undefined ? salvo : [];
+  });
+  const backup={
+    sistema:'otica-lclass',
+    versaoBackup:1,
+    exportadoEm:new Date().toISOString(),
+    dados
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='backup-otica-lclass-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
@@ -3881,6 +3904,26 @@ function abrirConfiguracoes(){
   const backendInput=document.createElement('input');backendInput.className='inp';backendInput.placeholder='URL do endpoint /api/vision';backendInput.value=localStorage.getItem('otica_ai_backend_url')||'';backendInput.style.marginBottom='8px';
   const backendBtn=document.createElement('button');backendBtn.className='btn btn-secondary btn-sm';backendBtn.textContent='Salvar endpoint';backendBtn.addEventListener('click',()=>{const v=backendInput.value.trim();if(!/^https:\/\//.test(v))return showToast('Informe uma URL HTTPS válida','error');localStorage.setItem('otica_ai_backend_url',v);showToast('Backend da IA configurado','success')});
   body.appendChild(backendTitle);body.appendChild(backendInput);body.appendChild(backendBtn);
+
+  const backupTitle=document.createElement('div');
+  backupTitle.style.cssText='font-size:11px;color:#C9A84C;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px';
+  backupTitle.textContent='📦 Backup dos dados';
+
+  const backupInfo=document.createElement('div');
+  backupInfo.style.cssText='font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.5';
+  backupInfo.textContent='Exporta clientes, receitas, crediário, vendas, agenda e estoque. Chaves da IA não são incluídas.';
+
+  const backupBtn=document.createElement('button');
+  backupBtn.className='btn btn-secondary';
+  backupBtn.textContent='📥 Exportar backup dos dados';
+  backupBtn.addEventListener('click',()=>{
+    exportarBackupDados();
+    showToast('Backup gerado com sucesso!','success');
+  });
+
+  body.appendChild(backupTitle);
+  body.appendChild(backupInfo);
+  body.appendChild(backupBtn);
   body.appendChild(secTitle);
   body.appendChild(status);
   body.appendChild(instrucoes);
