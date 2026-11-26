@@ -2,23 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Ótica lclass"/>
 <meta name="theme-color" content="#e30613"/>
 <title>Ótica lclass</title>
-<link rel="manifest" href="data:application/json,{
-  %22name%22:%22%C3%93tica%20lclass%22,
-  %22short_name%22:%22lclass%22,
-  %22start_url%22:%22.%22,
-  %22display%22:%22standalone%22,
-  %22background_color%22:%22%23060d1a%22,
-  %22theme_color%22:%22%23C9A84C%22,
-  %22icons%22:[{%22src%22:%22logo-lclass-original.jpeg%22,%22sizes%22:%22431x307%22,%22type%22:%22image/jpeg%22}]
-}"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="manifest" href="manifest.webmanifest"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -361,6 +352,10 @@ tbody tr:hover{background:#fff4f4}
 }
 
 </style>
+<style id="recuperacao-mobile-style">@media(max-width:600px){#abrir-recuperacao-mobile{display:inline-block!important;background:#fff;border:1px solid #aaa;border-radius:6px;padding:7px;cursor:pointer}}</style>
+<link rel="icon" href="assets/logo-32.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/logo-180.png">
+<link rel="stylesheet" href="evolucao.css">
 </head>
 <body>
 <div id="app">
@@ -374,6 +369,7 @@ tbody tr:hover{background:#fff4f4}
     </div>
     <nav id="nav"></nav>
     <div class="collapse-btn">
+      <button id="abrir-recuperacao-administrativa" class="nav-btn" title="Administração · Recuperação" aria-label="Administração · Recuperação" onclick="OticaRecuperacaoAdministrativa.abrir()"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg><span>Administração · Recuperação</span></button>
       <button class="nav-btn" onclick="abrirConfiguracoes()" style="color:#C9A84C">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span>Configurações</span>
@@ -393,6 +389,7 @@ tbody tr:hover{background:#fff4f4}
           📲 Instalar App
         </button>
         <span style="font-size:12px;color:var(--dim)" id="clock"></span>
+        <button id="abrir-recuperacao-mobile" title="Administração · Recuperação" aria-label="Administração · Recuperação" onclick="OticaRecuperacaoAdministrativa.abrir()" style="display:none">🔒</button>
         <div class="profile-avatar">G</div>
         <span style="font-size:13px;color:var(--muted)">Gerente</span>
       </div>
@@ -460,29 +457,7 @@ async function instalarApp() {
   deferredPrompt = null;
 }
 
-// Register inline service worker for offline support
-if('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'otica-lclass-v1';
-    self.addEventListener('install', e => {
-      self.skipWaiting();
-    });
-    self.addEventListener('activate', e => {
-      e.waitUntil(clients.claim());
-    });
-    self.addEventListener('fetch', e => {
-      // Cache-first for same-origin, network for external
-      if(e.request.url.startsWith(self.location.origin)) {
-        e.respondWith(
-          caches.match(e.request).then(r => r || fetch(e.request))
-        );
-      }
-    });
-  `;
-  const blob = new Blob([swCode], {type:'application/javascript'});
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(()=>{});
-}
+// Service worker estático registrado por pwa.js.
 
 // ═══════════════════════════════════════════════════════════
 // STORAGE
@@ -498,6 +473,7 @@ const DB = {
   },
   set(k,v){
     DB.get(k); // Não sobrescrever uma coleção existente que não possa ser lida.
+    if(['clientes','vendas','crediario','agenda'].includes(k))verificarIdsUnicos(v);
     localStorage.setItem('otica_'+k,JSON.stringify(v));
   },
 };
@@ -578,6 +554,185 @@ const estados=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
 
 // IDs são opacos: preservar texto completo, inclusive zeros iniciais.
 function sameId(a,b){return a!=null&&b!=null&&String(a)===String(b);}
+const cadastrosEmConferencia=new Set();
+function registroCanonico(valor){
+  if(Array.isArray(valor))return '['+valor.map(registroCanonico).join(',')+']';
+  if(valor&&typeof valor==='object')return '{'+Object.keys(valor).sort().map(k=>JSON.stringify(k)+':'+registroCanonico(valor[k])).join(',')+'}';
+  return JSON.stringify(valor);
+}
+function verificarIdsUnicos(registros){
+  if(!Array.isArray(registros))throw new Error('A coleção deve ser uma lista');
+  const ids=new Set();
+  registros.forEach(r=>{
+    if(!r||typeof r!=='object'||r.id==null||!['string','number'].includes(typeof r.id)||!String(r.id).trim()||(typeof r.id==='number'&&!Number.isSafeInteger(r.id)))throw new Error('Há registro com ID ausente ou inválido. Nenhum registro foi gravado.');
+    const id=String(r.id);
+    if(ids.has(id))throw new Error('Há IDs repetidos na coleção. Confira os registros antes de continuar.');
+    ids.add(id);
+  });
+}
+function textoComparacao(valor){return String(valor??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');}
+function telefonesComparacao(r){
+  return [r.celular,r.telefone].map(v=>{
+    let n=String(v??'').replace(/\D/g,'');
+    if([12,13].includes(n.length)&&n.startsWith('55'))n=n.slice(2);
+    return n;
+  }).filter(n=>n.length>=8);
+}
+function motivosClienteSemelhante(a,b){
+  const motivos=[],cpf=r=>String(r.cpf??'').replace(/\D/g,'');
+  if(textoComparacao(a.nome)&&textoComparacao(a.nome)===textoComparacao(b.nome))motivos.push('Nome coincidente');
+  if(cpf(a).length===11&&cpf(a)===cpf(b))motivos.push('CPF coincidente');
+  if(telefonesComparacao(a).some(t=>telefonesComparacao(b).includes(t)))motivos.push('Telefone coincidente (pode ser compartilhado)');
+  return motivos;
+}
+function clientePossivelmenteIgual(a,b,clientes){
+  if(a.clienteId!==undefined&&a.clienteId!==null&&a.clienteId!==''&&sameId(a.clienteId,b.clienteId))return true;
+  const ca=clientes.find(c=>sameId(c.id,a.clienteId)),cb=clientes.find(c=>sameId(c.id,b.clienteId));
+  return !!(ca&&cb&&motivosClienteSemelhante(ca,cb).length);
+}
+function motivosRegistroSemelhante(modulo,a,b,clientes=state.clientes){
+  if(sameId(a.id,b.id))return ['ID já existente — inclusão bloqueada'];
+  if(modulo==='clientes')return motivosClienteSemelhante(a,b);
+  const mesmoCliente=clientePossivelmenteIgual(a,b,clientes);
+  const descricao=r=>textoComparacao(r.descricao??r.produto??r.tipoExame);
+  const mesmoTexto=!!descricao(a)&&descricao(a)===descricao(b);
+  const mesmoValor=Number.isFinite(Number(a.total))&&Number.isFinite(Number(b.total))&&Number(a.total)===Number(b.total);
+  if(modulo==='vendas'&&mesmoCliente&&((a.data&&a.data===b.data&&(mesmoTexto||mesmoValor))||(mesmoTexto&&mesmoValor)))return ['Cliente coincidente ou semelhante e produto, data ou valor semelhantes; pode ser outra compra legítima'];
+  if(modulo==='crediario'&&mesmoCliente&&((a.dataPrimeira&&a.dataPrimeira===b.dataPrimeira&&(mesmoValor||mesmoTexto))||(mesmoTexto&&mesmoValor&&Number(a.parcelas)===Number(b.parcelas))))return ['Cliente coincidente ou semelhante e descrição, total, parcelas ou primeiro vencimento semelhantes'];
+  const mesmoNomeLivre=textoComparacao(a.nomeLivre)&&textoComparacao(a.nomeLivre)===textoComparacao(b.nomeLivre);
+  if(modulo==='agenda'&&(mesmoCliente||mesmoNomeLivre)&&a.data&&a.data===b.data&&(a.horario===b.horario||mesmoTexto))return ['Mesmo cliente ou nome livre, mesma data e horário ou exame semelhante'];
+  return [];
+}
+function localizarDuplicidades(modulo,registro,lista,clientes=state.clientes,ignorarId){
+  return lista.filter(r=>ignorarId===undefined||!sameId(r.id,ignorarId)).map(r=>({registro:r,motivos:motivosRegistroSemelhante(modulo,registro,r,clientes)})).filter(x=>x.motivos.length);
+}
+function resumoRegistroConferencia(modulo,r){
+  const linhas=[['ID',r.id]];
+  if(modulo==='clientes')linhas.push(['Nome',r.nome],['CPF',r.cpf],['Nascimento',r.dataNascimento],['Celular',r.celular],['Telefone',r.telefone],['Cidade',r.cidade]);
+  else{
+    linhas.push(['Cliente ID',r.clienteId],['Cliente',clienteNome(r.clienteId)],['Nome livre',r.nomeLivre],['Data',r.data],['Descrição / produto / exame',r.descricao??r.produto??r.tipoExame]);
+    if(modulo==='vendas')linhas.push(['Quantidade',r.qtd??r.quantidade],['Total',fmt(r.total)],['Pagamento',r.forma]);
+    if(modulo==='crediario'){
+      linhas.push(['Total',fmt(r.total)],['Parcelas',r.parcelas],['Primeiro vencimento',r.dataPrimeira]);
+      (r.pagamentos||[]).forEach(p=>linhas.push(['Parcela '+p.num,p.venc+' | '+fmt(p.valor)+' | '+(p.pago?'Paga em '+p.dataPag:'Em aberto')]));
+    }
+    if(modulo==='agenda')linhas.push(['Horário',r.horario],['Profissional',r.profissional],['Telefone',r.telefone],['Status',r.status]);
+    linhas.push(['Observações',r.obs]);
+  }
+  return linhas.filter(([,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>k+': '+v).join('\n');
+}
+function painelConferencia(titulo){
+  const overlay=document.createElement('div');overlay.className='modal-overlay';
+  const box=document.createElement('div');box.className='modal modal-lg';
+  const head=document.createElement('div');head.className='modal-header';
+  const h=document.createElement('h2');h.textContent=titulo;head.appendChild(h);
+  const body=document.createElement('div');body.className='modal-body';
+  box.appendChild(head);box.appendChild(body);overlay.appendChild(box);
+  document.getElementById('modal-root').appendChild(overlay);
+  return {overlay,body};
+}
+function mostrarRegistroConferencia(modulo,registro){
+  const p=painelConferencia('Registro existente — somente leitura');
+  const text=document.createElement('pre');text.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font:inherit';
+  text.textContent=resumoRegistroConferencia(modulo,registro);p.body.appendChild(text);
+  const voltar=document.createElement('button');voltar.className='btn btn-secondary';voltar.textContent='Voltar à conferência';
+  voltar.addEventListener('click',()=>p.overlay.remove());p.body.appendChild(voltar);
+}
+function solicitarConferenciaDuplicidade(modulo,candidato,conflitos,bloqueado){
+  return new Promise(resolve=>{
+    const p=painelConferencia(bloqueado?'ID já existente — não é possível duplicar':'Possível duplicidade — confira antes de gravar');
+    const aviso=document.createElement('p');aviso.textContent=bloqueado?'O ID já pertence a outro registro. Nenhum dado será substituído.':'Coincidências não comprovam duplicidade. Duas compras legítimas podem pertencer ao mesmo cliente. Confira os registros e justifique uma operação distinta.';p.body.appendChild(aviso);
+    const novo=document.createElement('pre');novo.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font:inherit';novo.textContent='Registro proposto:\n'+resumoRegistroConferencia(modulo,candidato);p.body.appendChild(novo);
+    conflitos.forEach(c=>{
+      const info=document.createElement('pre');info.style.cssText=novo.style.cssText;info.textContent=c.motivos.join('; ')+'\n'+resumoRegistroConferencia(modulo,c.registro);p.body.appendChild(info);
+      const ver=document.createElement('button');ver.className='btn btn-secondary btn-sm';ver.textContent='Ver registro existente';ver.addEventListener('click',()=>mostrarRegistroConferencia(modulo,c.registro));p.body.appendChild(ver);
+    });
+    const label=document.createElement('label');label.textContent='Justificativa para manter um registro ou operação distinto (mínimo de 10 caracteres)';p.body.appendChild(label);
+    const motivo=document.createElement('textarea');motivo.className='inp';motivo.disabled=bloqueado;motivo.maxLength=1000;motivo.setAttribute('aria-label','Justificativa da possível duplicidade');p.body.appendChild(motivo);
+    const confirmacao=document.createElement('input');confirmacao.type='checkbox';confirmacao.disabled=bloqueado;
+    const confirmarLabel=document.createElement('label');confirmarLabel.appendChild(confirmacao);const texto=document.createElement('span');texto.textContent=' Conferi os dados e confirmo que é um registro ou operação distinto.';confirmarLabel.appendChild(texto);p.body.appendChild(confirmarLabel);
+    const footer=document.createElement('div');footer.className='modal-footer';
+    const cancelar=document.createElement('button');cancelar.className='btn btn-ghost';cancelar.textContent='Cancelar';
+    cancelar.addEventListener('click',()=>{p.overlay.remove();resolve(null);});footer.appendChild(cancelar);
+    const prosseguir=document.createElement('button');prosseguir.className='btn btn-primary';prosseguir.textContent='Confirmar mesmo assim';
+    const valido=()=>!bloqueado&&confirmacao.checked&&motivo.value.trim().length>=10&&motivo.value.trim().length<=1000;
+    const atualizar=()=>{prosseguir.disabled=!valido();};motivo.addEventListener('input',atualizar);confirmacao.addEventListener('change',atualizar);
+    prosseguir.addEventListener('click',()=>{if(!valido())return;const justificativa=motivo.value.trim();p.overlay.remove();resolve({justificativa,confirmacaoExplicita:true});});
+    atualizar();footer.appendChild(prosseguir);p.body.appendChild(footer);
+  });
+}
+async function gravarRegistroConferido(modulo,registro,editarId){
+  if(cadastrosEmConferencia.has(modulo)){showToast('Já há um cadastro deste módulo em conferência','info');return false;}
+  cadastrosEmConferencia.add(modulo);
+  try{
+    const lista=state[modulo],salvo=DB.get(modulo)||[];
+    verificarIdsUnicos(lista);verificarIdsUnicos([registro]);
+    if(registroCanonico(lista)!==registroCanonico(salvo))throw new Error('Os dados deste módulo mudaram. Recarregue e confira antes de gravar.');
+    const snapshot=registroCanonico(lista),editando=editarId!==undefined;
+    const clientesSnapshot=modulo==='clientes'?null:registroCanonico(state.clientes);
+    if(clientesSnapshot!==null&&registroCanonico(DB.get('clientes')||[])!==clientesSnapshot)throw new Error('Os clientes mudaram. Recarregue e confira os vínculos antes de gravar.');
+    if(editando&&(!sameId(registro.id,editarId)||lista.filter(r=>sameId(r.id,editarId)).length!==1))throw new Error('O registro a editar não possui um ID único válido.');
+    if(modulo!=='clientes'){
+      const temCliente=registro.clienteId!==undefined&&registro.clienteId!==null&&registro.clienteId!=='';
+      const anterior=editando?lista.find(r=>sameId(r.id,editarId)):null;
+      if(temCliente&&!state.clientes.some(c=>sameId(c.id,registro.clienteId))&&!(anterior&&sameId(anterior.clienteId,registro.clienteId)))throw new Error('Cliente vinculado não encontrado. Nenhum registro foi gravado.');
+      if(!temCliente&&(modulo!=='agenda'||!textoComparacao(registro.nomeLivre)))throw new Error('Informe um cliente ou a identificação do agendamento.');
+    }
+    const conflitos=localizarDuplicidades(modulo,registro,lista,state.clientes,editarId);
+    const bloqueado=conflitos.some(c=>sameId(c.registro.id,registro.id));
+    let decisao=null;
+    if(conflitos.length){decisao=await solicitarConferenciaDuplicidade(modulo,registro,conflitos,bloqueado);if(!decisao||bloqueado)return false;}
+    if(registroCanonico(state[modulo])!==snapshot||registroCanonico(DB.get(modulo)||[])!==snapshot)throw new Error('Os dados mudaram durante a conferência. Nada foi gravado; confira novamente.');
+    if(clientesSnapshot!==null&&(registroCanonico(state.clientes)!==clientesSnapshot||registroCanonico(DB.get('clientes')||[])!==clientesSnapshot))throw new Error('Os clientes mudaram durante a conferência. Nada foi gravado; confira novamente.');
+    let novo={...registro};
+    if(decisao){
+      if(novo._conferenciasDuplicidade!==undefined&&!Array.isArray(novo._conferenciasDuplicidade))throw new Error('Histórico de conferência inválido. Nenhum dado foi sobrescrito.');
+      novo._conferenciasDuplicidade=[...(novo._conferenciasDuplicidade||[]),{em:new Date().toISOString(),operacao:editando?'edicao':'cadastro',justificativa:decisao.justificativa,confirmacaoExplicita:true,registrosConferidos:conflitos.map(c=>({id:c.registro.id,motivos:c.motivos}))}];
+    }
+    const proxima=editando?lista.map(r=>sameId(r.id,editarId)?novo:r):[...lista,novo];
+    verificarIdsUnicos(proxima);save(modulo,proxima);state[modulo]=proxima;
+    return true;
+  }catch(e){showToast(e.message,'error');return false;}
+  finally{cadastrosEmConferencia.delete(modulo);}
+}
+function analisarConciliacaoBackup(backup,destino){
+  const modulos=['clientes','vendas','crediario','agenda'];
+  const dados=backup?.dados??backup;
+  if(!dados||typeof dados!=='object'||Array.isArray(dados)||!modulos.some(k=>Object.prototype.hasOwnProperty.call(dados,k)))throw new Error('Backup sem coleções reconhecidas');
+  const atual=destino??Object.fromEntries(modulos.map(k=>[k,DB.get(k)||[]]));
+  const rel={somentePrevia:true,importacaoPermitida:false,jaPresentes:[],conflitosId:[],possiveisDuplicidades:[],inclusoesSemAlerta:[],problemas:[],colecoesAusentes:modulos.filter(k=>!Object.prototype.hasOwnProperty.call(dados,k))};
+  const origem={};modulos.forEach(k=>{origem[k]=Array.isArray(dados[k])?dados[k]:[];if(dados[k]!==undefined&&!Array.isArray(dados[k]))rel.problemas.push({modulo:k,motivo:'Coleção do backup não é uma lista'});try{verificarIdsUnicos(atual[k]||[]);}catch(e){rel.problemas.push({modulo:k,motivo:'Destino: '+e.message});}});
+  const clientes=[...origem.clientes,...(atual.clientes||[])].filter(r=>r&&typeof r==='object');
+  modulos.forEach(k=>{
+    const vistos=[];
+    origem[k].forEach((r,indice)=>{
+      try{verificarIdsUnicos([r]);}catch(e){rel.problemas.push({modulo:k,indice,motivo:e.message});return;}
+      const repetidos=vistos.filter(v=>sameId(v.id,r.id));
+      if(repetidos.length)rel.conflitosId.push({modulo:k,indice,candidato:r,existente:repetidos[0],motivo:'ID repetido dentro do backup; não incluir novamente'});
+      const existentes=(atual[k]||[]).filter(v=>sameId(v.id,r.id));
+      existentes.forEach(v=>{const item={modulo:k,indice,candidato:r,existente:v};if(registroCanonico(v)===registroCanonico(r))rel.jaPresentes.push(item);else rel.conflitosId.push({...item,motivo:'Mesmo ID com conteúdo ou tipo de ID diferente; sobrescrita bloqueada'});});
+      const semelhantes=localizarDuplicidades(k,r,[...(atual[k]||[]),...vistos].filter(v=>!sameId(v.id,r.id)),clientes);
+      semelhantes.forEach(v=>rel.possiveisDuplicidades.push({modulo:k,indice,candidato:r,existente:v.registro,motivos:v.motivos}));
+      if(!existentes.length&&!repetidos.length&&!semelhantes.length)rel.inclusoesSemAlerta.push({modulo:k,indice,candidato:r});
+      if(k!=='clientes'){
+        const temCliente=r.clienteId!==undefined&&r.clienteId!==null&&r.clienteId!=='';
+        if(temCliente&&!clientes.some(c=>sameId(c.id,r.clienteId)))rel.problemas.push({modulo:k,indice,motivo:'Cliente vinculado não encontrado nas fontes ou destino'});
+        if(!temCliente&&(k!=='agenda'||!textoComparacao(r.nomeLivre)))rel.problemas.push({modulo:k,indice,motivo:'Registro sem cliente ou identificação necessária'});
+      }
+      vistos.push(r);
+    });
+  });
+  return rel;
+}
+function mostrarPreviaConciliacao(rel){
+  const p=painelConferencia('Prévia de conciliação — nenhuma importação será executada');
+  const aviso=document.createElement('p');aviso.textContent='Importação bloqueada nesta etapa. Antes de qualquer importação futura serão necessários backup do destino, revisão dos conflitos e autorização. Casos históricos pendentes não são resolvidos automaticamente. Coleções ausentes não serão apagadas.';p.body.appendChild(aviso);
+  [['Problemas',rel.problemas],['Conflitos de ID — bloqueados',rel.conflitosId],['Possíveis duplicidades — revisão necessária',rel.possiveisDuplicidades],['IDs e registros já presentes — não incluir novamente',rel.jaPresentes],['Candidatos sem alerta — ainda não importados',rel.inclusoesSemAlerta]].forEach(([titulo,lista])=>{
+    const h=document.createElement('h3');h.textContent=titulo+': '+lista.length;p.body.appendChild(h);
+    lista.forEach(item=>{const text=document.createElement('pre');text.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font:inherit';text.textContent=item.modulo+': '+(item.motivo||item.motivos?.join('; ')||'')+(item.candidato?'\nBackup:\n'+resumoRegistroConferencia(item.modulo,item.candidato):'')+(item.existente?'\nRegistro existente:\n'+resumoRegistroConferencia(item.modulo,item.existente):'');p.body.appendChild(text);});
+  });
+  const fechar=document.createElement('button');fechar.className='btn btn-ghost';fechar.textContent='Fechar prévia';fechar.addEventListener('click',()=>p.overlay.remove());p.body.appendChild(fechar);
+}
 function idAttr(id){return String(id).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function idArg(id){return idAttr(JSON.stringify(String(id)));}
 function vendaDescricao(v){return v.descricao??v.produto??'';}
@@ -681,7 +836,9 @@ function gerarMsgLembrete(cred, parc){
 
 function gerarMsgCobranca(cred, parc){
   const cli = state.clientes.find(c=>sameId(c.id,cred.clienteId))||{};
-  const diasAtraso = Math.floor((new Date()-new Date(parc.venc+'T12:00:00'))/(1000*60*60*24));
+  const hoje = new Date();
+  const [ano,mes,dia] = String(parc.venc).split('-').map(Number);
+  const diasAtraso = Math.max(0,Math.round((Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())-Date.UTC(ano,mes-1,dia))/(1000*60*60*24)));
   const linhas = [
     '🏪 *Ótica lclass*',
     '──────────────────',
@@ -706,12 +863,25 @@ function gerarMsgCobranca(cred, parc){
   return linhas.join('\n');
 }
 
+function normalizarTelefoneBR(tel){
+  const texto=String(tel??'').trim();
+  if(!texto||!/^\+?[\d\s().-]+$/.test(texto))return '';
+  let num=texto.replace(/\D/g,'');
+  if(texto.startsWith('+')&&(!num.startsWith('55')||![12,13].includes(num.length)))return '';
+  if([12,13].includes(num.length)&&num.startsWith('55'))num=num.slice(2);
+  const ddds='11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99'.split(' ');
+  if(!ddds.includes(num.slice(0,2))||!(/^[1-9]\d[2-5]\d{7}$/.test(num)||/^[1-9]\d9\d{8}$/.test(num)))return '';
+  return '55'+num;
+}
+function urlWhatsApp(tel,msg){
+  const num=normalizarTelefoneBR(tel);
+  return num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'';
+}
 function abrirWhatsApp(){
   const input = document.getElementById(_waTelId);
   const tel = input ? input.value.trim() : '';
-  if(!tel){showToast('Informe o número do WhatsApp','error');return;}
-  const num = tel.replace(/\D/g,'');
-  const url = 'https://wa.me/55'+num+'?text='+encodeURIComponent(_waMsgAtual);
+  const url = urlWhatsApp(tel,_waMsgAtual);
+  if(!url){showToast('Informe um telefone brasileiro válido, com DDD','error');return;}
   // Tenta abrir de várias formas para garantir compatibilidade
   try {
     const a = document.createElement('a');
@@ -729,9 +899,7 @@ function abrirWhatsApp(){
 
 function modalWhatsApp(titulo, msg, tel){
   _waMsgAtual = msg;
-  const telFmt = tel || '';
-  const num = telFmt.replace(/\D/g,'');
-  const waUrl = 'https://wa.me/55'+num+'?text='+encodeURIComponent(msg);
+  const telFmt = String(tel??'');
 
   const root = document.getElementById('modal-root');
   root.innerHTML = '';
@@ -767,6 +935,9 @@ function modalWhatsApp(titulo, msg, tel){
   inp.placeholder = '(00) 00000-0000';
   _waTelId = 'wa_tel_input';
   f1.appendChild(l1); f1.appendChild(inp);
+  const phoneError = document.createElement('div');
+  phoneError.style.cssText = 'color:var(--red);font-size:12px;margin-top:6px';
+  f1.appendChild(phoneError);
 
   const f2 = document.createElement('div'); f2.className = 'field';
   const l2 = document.createElement('label'); l2.textContent = 'Pr\u00E9via da mensagem';
@@ -788,10 +959,28 @@ function modalWhatsApp(titulo, msg, tel){
   const fallback = document.createElement('div');
   fallback.style.cssText = 'margin-top:12px;padding:10px;background:#0d1e13;border-radius:8px;font-size:12px;color:#25d366;text-align:center';
   const link = document.createElement('a');
-  link.href = waUrl; link.target = '_blank'; link.rel = 'noopener';
+  link.target = '_blank'; link.rel = 'noopener';
   link.style.cssText = 'color:#25d366;font-weight:700;text-decoration:underline;font-size:13px';
   link.textContent = '\u{1F517} Toque aqui se o bot\u00E3o n\u00E3o funcionar';
   fallback.appendChild(link);
+
+  function atualizarDestino(){
+    const url=urlWhatsApp(inp.value,msg);
+    sendBtn.disabled=!url;
+    link.setAttribute('aria-disabled',url?'false':'true');
+    if(url){link.href=url;link.removeAttribute('tabindex');}
+    else{link.removeAttribute('href');link.setAttribute('tabindex','-1');}
+    phoneError.textContent=url?'':'Informe um telefone brasileiro válido, com DDD.';
+    return url;
+  }
+  inp.addEventListener('input',atualizarDestino);
+  link.addEventListener('click',e=>{
+    if(!atualizarDestino()){
+      e.preventDefault();
+      showToast('Informe um telefone brasileiro válido, com DDD','error');
+    }
+  });
+  atualizarDestino();
 
   body.appendChild(sub); body.appendChild(f1); body.appendChild(f2);
   body.appendChild(footer); body.appendChild(fallback);
@@ -1649,7 +1838,9 @@ async function salvarCliente(id){
   if(!rua||!num||!bairro||!cidade||!cep||!ref||!mae)return showToast('Preencha todos os campos obrigatórios','error');
   const fotoDoc1=await lerFoto('cf_foto_doc');
   const fotoDoc2=await lerFoto('cf_foto_doc2');
-  const cliAnterior=id?state.clientes.find(c=>sameId(c.id,id)):{};
+  const editando=id!==undefined&&id!==null&&id!==0;
+  const cliAnterior=editando?state.clientes.find(c=>sameId(c.id,id)):{};
+  if(editando&&!cliAnterior)return showToast('Cliente não encontrado','error');
   const data={
     nome,cpf:g('cf_cpf'),rg:g('cf_rg'),dataNascimento:g('cf_nascimento'),
     telefone:tel,celular:cel,rua,numero:num,complemento:g('cf_comp'),
@@ -1657,18 +1848,13 @@ async function salvarCliente(id){
     fotoDoc:fotoDoc1||cliAnterior.fotoDoc||'',
     fotoDoc2:fotoDoc2||cliAnterior.fotoDoc2||''
   };
-  if(id){
-    confirmDialog('Deseja salvar as alterações neste cliente?', ()=>{
-      state.clientes=state.clientes.map(c=>sameId(c.id,id)?{...c,...data}:c);
-      saveAll();closeModal();renderClientes();
-      showToast('Cliente atualizado!','success');
-    });
-    return;
-  } else {
-    state.clientes.push({...data,id:uid(),cadastro:today()});
-    showToast('Cliente cadastrado!','success');
-  }
-  saveAll();closeModal();renderClientes();
+  const registro=editando?{...cliAnterior,...data}:{...data,id:uid(),cadastro:today()};
+  const gravar=async()=>{
+    if(!await gravarRegistroConferido('clientes',registro,editando?id:undefined))return;
+    closeModal();renderClientes();showToast(editando?'Cliente atualizado!':'Cliente cadastrado!','success');
+  };
+  if(editando)confirmDialog('Deseja salvar as alterações neste cliente?',gravar);
+  else await gravar();
 }
 function ampliarFoto(src){
   showModal(`<div class="modal-header"><h2>Documento</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
@@ -2121,7 +2307,7 @@ function salvarReceita(id){
   const ativa=!!document.getElementById('rf_ativa')?.checked;
   if(ativa) state.receitas=state.receitas.map(x=>({...x,ativa:false}));
   const anterior=id?state.receitas.find(x=>String(x.id)===String(id)):null;
-  const data={...(anterior||{}),id:anterior?.id||uid(),clienteId:clienteId,profissional,validade,data:anterior?.data||today(),
+  const data={...(anterior||{}),id:anterior?.id||uid(),clienteId:clienteId,profissional,validade,...(window.LclassCommercial?.recipeMetadata?.()||{}),data:anterior?.data||today(),
     odEsfera:g('rf_odEsfera'),odCilindro:g('rf_odCilindro'),odEixo:g('rf_odEixo'),odAdicao:g('rf_odAdicao'),odDnp:g('rf_odDnp'),
     oeEsfera:g('rf_oeEsfera'),oeCilindro:g('rf_oeCilindro'),oeEixo:g('rf_oeEixo'),oeAdicao:g('rf_oeAdicao'),oeDnp:g('rf_oeDnp'),
     obs:g('rf_obs'),tipoLente:g('rf_tipo_lente'),dpDir:g('rf_dpD'),coDir:g('rf_coD'),dpEsq:g('rf_dpE'),coEsq:g('rf_coE'),dpLonge:g('rf_dpL'),dpPerto:g('rf_dpP'),
@@ -2739,7 +2925,7 @@ function abrirCameraGuia(){
   // Video
   var vid=document.createElement('video');
   vid.autoplay=true; vid.playsInline=true; vid.muted=true;
-  vid.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+  vid.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;z-index:1;';
   ov.appendChild(vid);
 
   // Canvas guia (por cima do vídeo, sem capturar eventos)
@@ -2750,7 +2936,7 @@ function abrirCameraGuia(){
   // Instrução
   var inf=document.createElement('div');
   inf.style.cssText='position:absolute;bottom:110px;left:0;right:0;z-index:3;text-align:center;color:#fff;font-size:13px;font-weight:700;text-shadow:0 2px 8px #000;pointer-events:none;padding:0 16px;';
-  inf.textContent='Encaixe o rosto no oval • Olhos nos círculos azuis • ~40cm';
+  inf.textContent='Prefira foto vertical 3:4. Mostre os dois olhos e toda a armação. Guia apenas ilustrativo.';
   ov.appendChild(inf);
 
   // Barra botões — z-index alto, bem acima do canvas
@@ -2795,8 +2981,8 @@ function abrirCameraGuia(){
   bar.appendChild(btnGal);
 
   // Iniciar câmera
-  navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:960}}})
-  .catch(function(){return navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});})
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:'environment'},width:{ideal:960},height:{ideal:1280},aspectRatio:{ideal:0.75}}})
+  .catch(function(){return navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:960},height:{ideal:1280},aspectRatio:{ideal:0.75}}});})
   .then(function(stream){
     vid.srcObject=stream;
     vid.play();
@@ -3597,29 +3783,58 @@ function abrirFormCrediario(){
     </div>
   `,'modal-md');
 }
-function calcParcela(){
-  const t=parseFloat(document.getElementById('crd_total')?.value||0);
-  const n=parseInt(document.getElementById('crd_parc')?.value||1);
-  const j=parseFloat(document.getElementById('crd_juros')?.value||0);
-  const vp=t*(1+j/100)/n;
-  const el=document.getElementById('crd_vp');
-  if(el)el.textContent=fmt(isNaN(vp)?0:vp);
+function calcularParcelasCrediario(valor,juros,numero){
+  // Valores monetários e juros são calculados como inteiros, sem multiplicação decimal.
+  function unidades(texto,casas){
+    const m=String(texto).trim().match(new RegExp('^([+-]?)(\\d*)(?:[.,](\\d{0,'+casas+'}))?$'));
+    if(!m||!(m[2]||m[3]))throw new Error('Informe valores válidos para o contrato');
+    return BigInt((m[1]==='-'?'-':'')+(m[2]||'0')+(m[3]||'').padEnd(casas,'0'));
+  }
+  const n=Number(numero),base=unidades(valor,2),taxa=unidades(juros||'0',6);
+  const escala=100000000n; // Percentual com até seis casas decimais.
+  if(!Number.isInteger(n)||n<1||n>24||base<=0n||escala+taxa<=0n)throw new Error('Informe valor e número de parcelas válidos');
+  const total=(base*(escala+taxa)+escala/2n)/escala;
+  if(total<=0n||base>BigInt(Number.MAX_SAFE_INTEGER)||total>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('Valor do contrato fora do limite suportado');
+  const parcela=total/BigInt(n),resto=Number(total%BigInt(n));
+  return {valorBase:Number(base)/100,juros:Number(taxa)/1000000,totalCentavos:Number(total),
+    parcelasCentavos:Array.from({length:n},(_,i)=>Number(parcela)+(i<resto?1:0))};
 }
-function salvarCrediario(){
+function vencimentoMensalCrediario(dataOriginal,meses){
+  const original=new Date(dataOriginal+'T00:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dataOriginal)||!Number.isFinite(original.getTime())||original.toISOString().slice(0,10)!==dataOriginal||!Number.isInteger(meses)||meses<0)throw new Error('Informe uma data válida para a primeira parcela');
+  const venc=new Date(original);
+  venc.setUTCDate(1);
+  venc.setUTCMonth(original.getUTCMonth()+meses);
+  const fim=new Date(venc);
+  fim.setUTCMonth(fim.getUTCMonth()+1,0);
+  venc.setUTCDate(Math.min(original.getUTCDate(),fim.getUTCDate()));
+  return venc.toISOString().split('T')[0];
+}
+function calcParcela(){
+  const el=document.getElementById('crd_vp');
+  if(!el)return;
+  try{
+    const plano=calcularParcelasCrediario(document.getElementById('crd_total')?.value||'0',document.getElementById('crd_juros')?.value||'0',document.getElementById('crd_parc')?.value||'1');
+    const menor=Math.min(...plano.parcelasCentavos),maior=Math.max(...plano.parcelasCentavos);
+    el.textContent=menor===maior?fmt(menor/100):fmt(menor/100)+' a '+fmt(maior/100);
+  }catch(e){el.textContent=fmt(0);}
+}
+async function salvarCrediario(){
   const cliId=document.getElementById('crd_cli')?.value||'';
-  const total=parseFloat(document.getElementById('crd_total')?.value||0);
-  const n=parseInt(document.getElementById('crd_parc')?.value||1);
+  const valor=document.getElementById('crd_total')?.value||'';
+  const n=Number(document.getElementById('crd_parc')?.value||1);
   const dp=document.getElementById('crd_data')?.value||today();
-  const j=parseFloat(document.getElementById('crd_juros')?.value||0);
+  const juros=document.getElementById('crd_juros')?.value||'0';
   const desc=document.getElementById('crd_desc')?.value?.trim()||'';
-  if(!cliId||!total||!dp)return showToast('Preencha os campos obrigatórios','error');
-  const vp=+(total*(1+j/100)/n).toFixed(2);
-  const pagamentos=Array.from({length:n},(_,i)=>{
-    const d=new Date(dp+'T12:00:00');d.setMonth(d.getMonth()+i);
-    return{num:i+1,venc:d.toISOString().split('T')[0],valor:vp,pago:false,dataPag:'',forma:'',obs:''};
-  });
-  state.crediario.push({id:uid(),clienteId:cliId,data:today(),total,parcelas:n,dataPrimeira:dp,juros:j,descricao:desc,pagamentos});
-  saveAll();closeModal();showToast('Crediário registrado!','success');renderCrediario();
+  if(!cliId||!valor||!dp)return showToast('Preencha os campos obrigatórios','error');
+  let plano,pagamentos;
+  try{
+    plano=calcularParcelasCrediario(valor,juros,n);
+    pagamentos=plano.parcelasCentavos.map((centavos,i)=>({num:i+1,venc:vencimentoMensalCrediario(dp,i),valor:centavos/100,pago:false,dataPag:'',forma:'',obs:''}));
+  }catch(e){return showToast(e.message,'error');}
+  const registro={id:uid(),clienteId:cliId,data:today(),total:plano.totalCentavos/100,valorBase:plano.valorBase,parcelas:n,dataPrimeira:dp,juros:plano.juros,descricao:desc,pagamentos};
+  if(!await gravarRegistroConferido('crediario',registro))return;
+  closeModal();showToast('Crediário registrado!','success');renderCrediario();
 }
 function abrirPagModal(credId,parcNum,valor){
   showModal(`
@@ -3816,7 +4031,7 @@ function toggleParc(){
   const pf=document.getElementById('vf_parc_field');
   if(pf)pf.style.display=(f==='Cartão'||f==='Crediário')?'block':'none';
 }
-function salvarVenda(){
+async function salvarVenda(){
   const cliId=document.getElementById('vf_cli')?.value||'';
   const desc=document.getElementById('vf_desc')?.value?.trim()||'';
   const qtd=parseInt(document.getElementById('vf_qtd')?.value||1);
@@ -3825,9 +4040,9 @@ function salvarVenda(){
   const parc=parseInt(document.getElementById('vf_parc')?.value||1);
   const obs=document.getElementById('vf_obs')?.value?.trim()||'';
   if(!cliId||!desc||!vu)return showToast('Preencha os campos obrigatórios','error');
-  const novaVenda={id:uid(),clienteId:cliId,data:today(),descricao:desc,qtd,valorUnit:vu,total:+(qtd*vu).toFixed(2),forma,parcelas:parc,obs};
-  state.vendas.push(novaVenda);
-  saveAll();closeModal();showToast('Venda registrada!','success');renderVendas();
+  const novaVenda={id:uid(),clienteId:cliId,data:today(),descricao:desc,qtd,valorUnit:vu,total:+(qtd*vu).toFixed(2),forma,parcelas:parc,obs,...(window.LclassCommercial?.saleContext?.()||{})};
+  if(!await gravarRegistroConferido('vendas',novaVenda))return;
+  closeModal();showToast('Venda registrada!','success');renderVendas();
   // oferecer envio WA
   const tel=clienteTel(cliId);
   if(tel){
@@ -3948,6 +4163,16 @@ function abrirConfiguracoes(){
   body.appendChild(backupTitle);
   body.appendChild(backupInfo);
   body.appendChild(backupBtn);
+  const previaInput=document.createElement('input');previaInput.type='file';previaInput.accept='.json,application/json';previaInput.style.display='none';
+  const previaBtn=document.createElement('button');previaBtn.className='btn btn-secondary';previaBtn.textContent='Conferir backup (sem importar)';previaBtn.style.marginLeft='8px';
+  previaBtn.addEventListener('click',()=>previaInput.click());
+  previaInput.addEventListener('change',async()=>{
+    const arquivo=previaInput.files?.[0];if(!arquivo)return;
+    try{mostrarPreviaConciliacao(analisarConciliacaoBackup(JSON.parse(await arquivo.text())));}
+    catch(e){showToast('Não foi possível conferir o backup: '+e.message,'error');}
+    finally{previaInput.value='';}
+  });
+  body.appendChild(previaInput);body.appendChild(previaBtn);
   body.appendChild(secTitle);
   body.appendChild(status);
   body.appendChild(instrucoes);
@@ -4053,7 +4278,7 @@ function abrirFormAgenda(id){
     '<button class="btn btn-primary" onclick="salvarAgenda('+(editando?idArg(ag.id):'')+')">Salvar Agendamento</button></div></div>',
     'modal-md');
 }
-function salvarAgenda(id){
+async function salvarAgenda(id){
   const editando=id!==undefined&&id!==null;
   const anterior=editando?state.agenda.find(a=>sameId(a.id,id)):null;
   if(editando&&!anterior)return showToast('Agendamento não encontrado','error');
@@ -4065,10 +4290,7 @@ function salvarAgenda(id){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(data)||!Number.isFinite(dia.getTime())||dia.toISOString().slice(0,10)!==data||!/^([01]\d|2[0-3]):[0-5]\d$/.test(horario))return showToast('Informe data e horário válidos','error');
   const ag={...(anterior||{}),id:anterior?anterior.id:uid(),clienteId:sameId(anterior?.clienteId,clienteId)?anterior.clienteId:clienteId,
     nomeLivre,telefone:g('ag_tel'),data,horario,tipoExame:g('ag_tipo')||'Exame de Vista',profissional:g('ag_prof'),obs:g('ag_obs'),status:anterior?.status||'Agendado'};
-  if(!editando&&state.agenda.some(a=>sameId(a.id,ag.id)))return showToast('Não foi possível gerar um ID único. Tente salvar novamente.','error');
-  const agenda=editando?state.agenda.map(a=>sameId(a.id,id)?ag:a):[...state.agenda,ag];
-  try{save('agenda',agenda);}catch(e){return showToast('Não foi possível salvar a Agenda no armazenamento local','error');}
-  state.agenda=agenda;
+  if(!await gravarRegistroConferido('agenda',ag,editando?id:undefined))return;
   closeModal();showToast(editando?'Agendamento atualizado!':'Agendamento registrado!','success');
   if(state.pagina==='agenda')renderAgenda();
 }
@@ -4135,5 +4357,592 @@ function init(){
 
 document.addEventListener('DOMContentLoaded',function(){init();});
 </script>
+<!-- INICIO RECUPERACAO LOCAL -->
+<script>
+/* FERRAMENTA LOCAL. Não executa automaticamente. */
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.OticaRecuperacaoCore=api;
+})(globalThis,function(){
+  'use strict';
+  const TABLET_READ_ONLY=globalThis.OticaRecuperacaoModoTablet===true;
+  const MODULES=['clientes','vendas','crediario','agenda'];
+  const JOURNAL='otica_recuperacao_journal_v1';
+  const LEDGER='otica_recuperacao_conferencia_v1';
+  const KNOWN=['clientes','receitas','crediario','vendas','agenda','estoque','api_key','ai_backend_url'].map(k=>'otica_'+k).concat(JOURNAL,LEDGER);
+  const EDITABLE={
+    clientes:['nome','cpf','rg','dataNascimento','telefone','celular','rua','numero','complemento','bairro','cidade','estado','cep','referencia','mae','pai','status'],
+    vendas:['descricao','produto','obs','dataEntrega'],
+    crediario:['descricao','obs','dataEntrega'],
+    agenda:['nomeLivre','telefone','data','horario','tipoExame','profissional','obs','status']
+  };
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  const same=(a,b)=>a!=null&&b!=null&&String(a)===String(b);
+  const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
+  const equal=(a,b)=>canonical(a)===canonical(b);
+  const fail=(condition,message)=>{if(!condition)throw new Error(message);};
+  const plain=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+  const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
+  const idKey=r=>String(r.id);
+  const knownKey=k=>typeof k==='string'&&k.startsWith('otica_');
+  async function sha256(text){
+    const bytes=typeof text==='string'?new TextEncoder().encode(text):text;
+    fail(globalThis.crypto?.subtle,'É necessário WebCrypto em contexto seguro.');
+    return Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes))).map(n=>n.toString(16).padStart(2,'0')).join('');
+  }
+  async function seal(format,payload){return {format,payload,sha256:await sha256(canonical(payload))};}
+  async function unseal(value,format){
+    const e=typeof value==='string'?JSON.parse(value):clone(value);
+    fail(e?.format===format&&plain(e.payload)&&typeof e.sha256==='string','Arquivo de segurança não reconhecido.');
+    fail(await sha256(canonical(e.payload))===e.sha256,'Hash do arquivo de segurança inválido.');
+    return e;
+  }
+  function validDate(value){
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+    const d=new Date(value+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===value;
+  }
+  function unique(rows,label){
+    fail(Array.isArray(rows),label+': coleção não é uma lista.');const ids=new Set();
+    for(const row of rows){
+      fail(plain(row)&&['string','number'].includes(typeof row.id)&&String(row.id).trim()&&(typeof row.id!=='number'||Number.isSafeInteger(row.id)),label+': ID ausente ou inseguro.');
+      fail(!ids.has(idKey(row)),label+': IDs repetidos, inclusive equivalência entre número e texto.');ids.add(idKey(row));
+    }
+  }
+  function validateRecord(module,row){
+    unique([row],module);
+    if(module==='clientes')fail(typeof row.nome==='string'&&row.nome.trim(),'Cliente sem nome.');
+    else{
+      const hasClient=row.clienteId!==undefined&&row.clienteId!==null&&row.clienteId!=='';
+      fail(hasClient||(module==='agenda'&&norm(row.nomeLivre)),'Registro sem identificação de cliente.');
+      if(row.data!==undefined)fail(validDate(row.data),'Data de registro inválida.');
+    }
+    if(module==='vendas'){
+      fail(typeof row.total==='number'&&Number.isFinite(row.total)&&row.total>=0,'Total de venda inválido.');
+      const qty=row.qtd??row.quantidade;if(qty!==undefined)fail(typeof qty==='number'&&Number.isFinite(qty)&&qty>=0,'Quantidade inválida.');
+    }
+    if(module==='crediario'){
+      fail(typeof row.total==='number'&&Number.isFinite(row.total)&&row.total>=0,'Total de crediário inválido.');
+      fail(Number.isInteger(row.parcelas)&&row.parcelas>0&&Array.isArray(row.pagamentos)&&row.pagamentos.length===row.parcelas,'Estrutura de parcelas inválida.');
+      const numbers=new Set();
+      for(const p of row.pagamentos){
+        fail(plain(p)&&Number.isInteger(p.num)&&p.num>0&&!numbers.has(p.num),'Número de parcela inválido ou repetido.');numbers.add(p.num);
+        fail(typeof p.valor==='number'&&Number.isFinite(p.valor)&&p.valor>=0&&typeof p.pago==='boolean'&&validDate(p.venc),'Parcela inválida.');
+        if(p.pago)fail(validDate(p.dataPag),'Pagamento registrado sem data válida.');
+      }
+    }
+    if(module==='agenda')fail(validDate(row.data)&&typeof row.horario==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(row.horario),'Data ou horário de agenda inválido.');
+  }
+  function checkSnapshot(snapshot,origin,path){
+    fail(plain(snapshot)&&snapshot.origin===origin&&snapshot.path===path&&plain(snapshot.entries),'Snapshot de outro endereço ou formato.');
+    for(const key of Object.keys(snapshot.entries)){
+      const value=snapshot.entries[key];
+      fail(knownKey(key)&&plain(value)&&typeof value.present==='boolean'&&((value.present&&typeof value.raw==='string')||(!value.present&&value.raw===null)),'Snapshot com chave ou valor inválido.');
+    }
+    for(const key of KNOWN)fail(Object.prototype.hasOwnProperty.call(snapshot.entries,key),'Snapshot não preserva as chaves ausentes conhecidas.');
+  }
+  function capture(storage,origin,path,extra=[]){
+    function once(){
+      const names=new Set([...KNOWN,...extra]);
+      for(let i=0;i<storage.length;i++){const key=storage.key(i);if(knownKey(key))names.add(key);}
+      const entries={};for(const key of [...names].sort()){const raw=storage.getItem(key);entries[key]={present:raw!==null,raw};}
+      return {origin,path,entries};
+    }
+    const a=once(),b=once();fail(equal(a,b),'O armazenamento mudou durante a leitura. Gere outro backup.');return a;
+  }
+  function readBusiness(snapshot){
+    const data={};
+    for(const module of MODULES){
+      const entry=snapshot.entries['otica_'+module];
+      data[module]=entry.present?JSON.parse(entry.raw):[];unique(data[module],'Destino '+module);
+      data[module].forEach(row=>validateRecord(module,row));
+    }
+    for(const module of ['receitas','estoque']){
+      const e=snapshot.entries['otica_'+module];if(e.present)fail(Array.isArray(JSON.parse(e.raw)),'Destino '+module+' inválido. Nenhum conteúdo será substituído.');
+    }
+    return data;
+  }
+  function phones(row){return [row.celular,row.telefone].map(v=>{let n=String(v??'').replace(/\D/g,'');if([12,13].includes(n.length)&&n.startsWith('55'))n=n.slice(2);return n;}).filter(n=>n.length>=8);}
+  function similarClient(a,b){
+    const cpf=x=>String(x.cpf??'').replace(/\D/g,'');
+    return !!(norm(a.nome)&&norm(a.nome)===norm(b.nome)||cpf(a).length===11&&cpf(a)===cpf(b)||phones(a).some(p=>phones(b).includes(p)));
+  }
+  function similar(module,a,b,clients){
+    if(module==='clientes')return similarClient(a,b);
+    const ca=clients.find(c=>same(c.id,a.clienteId)),cb=clients.find(c=>same(c.id,b.clienteId));
+    const linked=a.clienteId!=null&&a.clienteId!==''&&same(a.clienteId,b.clienteId)||!!(ca&&cb&&similarClient(ca,cb));
+    const description=r=>norm(r.descricao??r.produto??r.tipoExame);
+    const desc=!!description(a)&&description(a)===description(b);
+    const amount=typeof a.total==='number'&&typeof b.total==='number'&&a.total===b.total;
+    if(module==='vendas')return !!(linked&&(a.data&&a.data===b.data&&(desc||amount)||desc&&amount));
+    if(module==='crediario')return !!(linked&&(a.dataPrimeira&&a.dataPrimeira===b.dataPrimeira&&(desc||amount)||desc&&amount&&a.parcelas===b.parcelas));
+    return !!((linked||norm(a.nomeLivre)&&norm(a.nomeLivre)===norm(b.nomeLivre))&&a.data===b.data&&(a.horario===b.horario||desc));
+  }
+  function hasProof(row){return !!row&&typeof row==='object'&&Object.entries(row).some(([k,v])=>(/comprovante|recibo/i.test(k)&&v&&(!Array.isArray(v)||v.length))||(v&&typeof v==='object'&&hasProof(v)));}
+  function financialProtection(module,row,all){
+    if(module==='agenda')return {protected:false,paid:0,receipts:false,contracts:0};
+    const contracts=module==='crediario'?[row]:all.crediario.filter(c=>same(c.clienteId,module==='clientes'?row.id:row.clienteId));
+    const paid=contracts.flatMap(c=>c.pagamentos||[]).filter(p=>p.pago).length;
+    const receipts=hasProof(row)||contracts.some(c=>hasProof(c)||!!c.registroEntrada);
+    return {protected:paid>0||receipts,paid,receipts,contracts:contracts.length};
+  }
+  class Session{
+    constructor({storage,origin,path,policy,now=()=>new Date().toISOString()}){
+      fail(storage&&plain(policy),'Configuração local ausente.');
+      fail(origin===policy.origin&&path.startsWith(policy.path),'Execute a ferramenta somente no endereço autorizado da Ótica Lclass.');
+      this.storage=storage;this.origin=origin;this.path=policy.path;this.policy=clone(policy);this.now=now;
+      this.backup=null;this.backupVerified=false;this.sourcesReady=false;this.records=[];this.events=[];this.decisions={};this.plan=null;this.planVerified=false;this.busy=false;
+    }
+    current(extra=[]){return capture(this.storage,this.origin,this.path,extra);}
+    assertBaseline(){fail(this.backupVerified,'Exporte e confira o backup bruto primeiro.');fail(equal(this.current(Object.keys(this.backup.payload.snapshot.entries)),this.backup.payload.snapshot),'O destino mudou. Exporte novo backup e refaça a prévia.');}
+    async exportBackup(){
+      fail(!this.busy,'Há uma operação em andamento.');this.plan=null;this.planVerified=false;this.sourcesReady=false;this.backupVerified=false;
+      const snapshot=this.current();
+      this.backup=await seal('otica.snapshot.v1',{snapshot,capturedAt:this.now(),nonce:globalThis.crypto.randomUUID()});
+      return clone(this.backup);
+    }
+    async verifyBackup(text){
+      fail(this.backup,'Exporte o backup antes de conferir o arquivo baixado.');
+      const e=await unseal(text,'otica.snapshot.v1');checkSnapshot(e.payload.snapshot,this.origin,this.path);
+      fail(equal(e,this.backup),'O arquivo conferido não é o backup recém-exportado.');
+      fail(equal(this.current(Object.keys(e.payload.snapshot.entries)),e.payload.snapshot),'O navegador mudou desde a exportação.');
+      fail(!e.payload.snapshot.entries[JOURNAL].present,'Há uma recuperação interrompida. Use a área de recuperação de falha parcial.');
+      this.backupVerified=true;return true;
+    }
+    async loadFiles(texts){
+      this.assertBaseline();this.sourcesReady=false;this.plan=null;this.planVerified=false;
+      const names=[this.policy.manifest.name,...this.policy.sources.map(s=>s.name)];
+      fail(Object.keys(texts).length===names.length&&names.every(n=>typeof texts[n]==='string'),'Selecione somente o manifesto e os dois arquivos privados previstos.');
+      fail(await sha256(texts[this.policy.manifest.name])===this.policy.manifest.sha256,'Manifesto privado diferente do aprovado.');
+      const manifest=JSON.parse(texts[this.policy.manifest.name]);fail(Array.isArray(manifest.arquivos),'Manifesto inválido.');
+      const destination=readBusiness(this.backup.payload.snapshot),records=[],sourceData={};
+      this.ledger={format:'otica.review.v1',events:[],records:{},decisions:{}};
+      const ledgerEntry=this.backup.payload.snapshot.entries[LEDGER];
+      if(ledgerEntry.present){this.ledger=JSON.parse(ledgerEntry.raw);await this.validateLedger(this.ledger);}
+      this.events=clone(this.ledger.events);this.decisions=clone(this.ledger.decisions);
+      for(let priority=0;priority<this.policy.sources.length;priority++){
+        const spec=this.policy.sources[priority],text=texts[spec.name];
+        fail(await sha256(text)===spec.sha256,'Hash da fonte privada divergente: '+spec.name);
+        fail(manifest.arquivos.filter(f=>f.arquivo===spec.name&&f.sha256===spec.sha256).length===1,'Fonte não corresponde ao manifesto.');
+        const doc=JSON.parse(text),data=doc.dados;fail(plain(data),'Arquivo de recuperação sem dados.');sourceData[spec.id]=clone(data);
+        for(const [module,count]of Object.entries(spec.counts))fail(Array.isArray(data[module])&&data[module].length===count,'Contagem da fonte diferente da validada: '+module);
+        for(const module of MODULES){
+          const rows=data[module]??[];unique(rows,spec.id+' '+module);
+          for(let index=0;index<rows.length;index++){
+            const original=clone(rows[index]);validateRecord(module,original);
+            const key=spec.id+':'+module+':'+index,sourceHash=await sha256(canonical(original));
+            const existing=destination[module].find(r=>same(r.id,original.id));
+            const receipt=this.ledger.records[key];
+            const owned=!!(existing&&receipt&&receipt.sourceHash===sourceHash&&receipt.afterHash===await sha256(canonical(existing)));
+            const record={key,source:spec.id,priority,module,index,ref:spec.prefix+'-'+({clientes:'C',vendas:'V',crediario:'CR',agenda:'A'}[module])+String(index+1).padStart(2,'0'),original,working:clone(owned?existing:original),sourceHash,existing:existing?clone(existing):null,owned,hard:[],warnings:[],policyHold:(spec.holds?.[module]||[]).includes(index),caseId:(this.policy.cases||[]).find(c=>c.keys.includes(key))?.id||null};
+            if(existing&&!equal(existing,original)&&!owned)record.hard.push('Mesmo ID no destino com conteúdo diferente. Não sobrescrever.');
+            const decision=this.decisions[key];
+            if(decision){fail(decision.sourceHash===sourceHash,'Decisão arquivada de outra versão do registro.');this.validateDecision(decision,module);record.working={...record.working,...clone(decision.patch||{})};}
+            records.push(record);
+          }
+        }
+      }
+      const clients=[...records.filter(r=>r.module==='clientes').map(r=>r.original),...destination.clientes];
+      records.forEach(record=>{
+        const peers=records.filter(r=>r!==record&&r.module===record.module);
+        peers.forEach(peer=>{
+          if(same(record.original.id,peer.original.id)){
+            if(!equal(record.original,peer.original))record.hard.push('ID conflitante entre as fontes.');
+            else if(peer.priority<record.priority)record.hard.push('ID já representado por outra fonte; não inserir novamente.');
+          }else if(peer.priority<=record.priority&&similar(record.module,record.original,peer.original,clients))record.warnings.push({ref:peer.ref,key:peer.key,reason:'Campos semelhantes; conferir identidade ou operação distinta.'});
+        });
+        destination[record.module].filter(r=>!same(r.id,record.original.id)).forEach(r=>{if(similar(record.module,record.original,r,clients))record.warnings.push({id:r.id,reason:'Registro semelhante no destino.'});});
+        if(record.module!=='clientes'&&record.original.clienteId!=null&&record.original.clienteId!==''&&!clients.some(c=>same(c.id,record.original.clienteId)))record.hard.push('Cliente vinculado não encontrado.');
+      });
+      this.records=records;this.destination=destination;this.sourceData=sourceData;this.sourcesReady=true;this.assertBaseline();return this.preview();
+    }
+    compareSource(source='tablet'){
+      this.assertBaseline();fail(this.sourcesReady&&plain(this.sourceData[source]),'Valide a fonte anterior antes da comparação.');
+      const previous=this.sourceData[source],modules={};
+      for(const module of [...MODULES,'receitas','estoque']){
+        if(!Object.hasOwn(previous,module)){modules[module]={disponivel:false};continue;}
+        const old=previous[module];fail(Array.isArray(old),'Coleção anterior inválida para comparação.');
+        const entry=this.backup.payload.snapshot.entries['otica_'+module],current=entry.present?JSON.parse(entry.raw):[];
+        fail(Array.isArray(current),'Coleção atual inválida. Nenhum dado será substituído.');
+        const result={disponivel:true,anteriores:old.length,atuais:current.length,chaveAtualPresente:entry.present,mesmoConteudo:equal(old,current)};
+        if(MODULES.includes(module)){
+          result.iguais=[];result.alterados=[];result.novos=[];result.apenasNoAnterior=[];
+          for(const row of old){const found=current.find(r=>same(r.id,row.id));if(!found)result.apenasNoAnterior.push(row.id);else if(equal(found,row))result.iguais.push(row.id);else result.alterados.push({id:row.id,campos:[...new Set([...Object.keys(row),...Object.keys(found)])].filter(k=>!equal(row[k],found[k]))});}
+          for(const row of current)if(!old.some(r=>same(r.id,row.id)))result.novos.push(row.id);
+        }
+        modules[module]=result;
+      }
+      return {source,modules,diferencas:Object.values(modules).some(m=>m.disponivel&&!m.mesmoConteudo),limite:'Compara conteúdo de registros. O JSON antigo não informa a presença/ausência original de todas as chaves; somente o backup bruto atual preserva isso.'};
+    }
+    async validateLedger(ledger){
+      fail(plain(ledger)&&ledger.format==='otica.review.v1'&&Array.isArray(ledger.events)&&plain(ledger.records)&&plain(ledger.decisions),'Auditoria local inválida.');
+      let previous='';const latest={};for(const event of ledger.events){const copy={...event};delete copy.hash;fail(event.previous===previous&&event.hash===await sha256(canonical(copy)),'Cadeia de auditoria local inválida.');fail(event.confirmed&&typeof event.operator==='string'&&event.operator.trim().length>=2&&typeof event.reason==='string'&&event.reason.trim().length>=10,'Evento sem identificação ou justificativa.');previous=event.hash;latest[event.key]=event.after;}
+      fail(equal(latest,ledger.decisions),'Decisões não correspondem à auditoria.');
+    }
+    validateDecision(decision,module){
+      fail(plain(decision)&&plain(decision.patch||{}),'Decisão de conferência inválida.');
+      for(const [field,value]of Object.entries(decision.patch||{}))fail(EDITABLE[module].includes(field)&&typeof value==='string','Edição de ID, vínculo ou campo financeiro protegida.');
+      if(decision.accepted||decision.legitimate||decision.deleted)fail(decision.confirmed&&typeof decision.reason==='string'&&decision.reason.trim().length>=10&&typeof decision.operator==='string'&&decision.operator.trim().length>=2,'Decisão sem confirmação, justificativa ou identificação da operadora.');
+    }
+    record(key){fail(this.sourcesReady,'Carregue e valide as fontes primeiro.');const row=this.records.find(r=>r.key===key);fail(row,'Registro desconhecido.');return row;}
+    allBusiness(){
+      const all={};for(const m of MODULES){const map=new Map(this.destination[m].map(r=>[idKey(r),r]));this.records.filter(r=>r.module===m).forEach(r=>{if(!map.has(idKey(r.working)))map.set(idKey(r.working),r.working);});all[m]=[...map.values()];}return all;
+    }
+    impact(key){
+      const r=this.record(key),all=this.allBusiness(),row=r.working;
+      const links={vendas:[],crediario:[],agenda:[]};
+      if(r.module==='clientes')for(const m of Object.keys(links))links[m]=all[m].filter(v=>same(v.clienteId,row.id)).map(v=>({id:v.id,module:m}));
+      const financial=financialProtection(r.module,row,all);
+      const clientId=r.module==='clientes'?row.id:row.clienteId;
+      const client=all.clientes.find(c=>same(c.id,clientId));
+      const relatedContracts=all.crediario.filter(c=>same(c.clienteId,clientId)).map(c=>({id:c.id,total:c.total,parcelas:c.parcelas,pagas:(c.pagamentos||[]).filter(p=>p.pago).length,comprovantes:hasProof(c)}));
+      return {cliente:client?{id:client.id,nome:client.nome}:null,links,contratosAssociados:relatedContracts,financial,notes:['Nenhum vínculo será removido em cascata.','Exclusão lógica vale para a conferência, não apaga dados do tablet nem registros operacionais.','Associações financeiras por cliente exigem conferência; não provam que uma venda gerou determinado contrato.']};
+    }
+    warnings(record){
+      const warnings=clone(record.warnings),clients=[...this.records.filter(r=>r.module==='clientes').map(r=>r.working),...this.destination.clientes];
+      for(const peer of this.records.filter(r=>r!==record&&r.module===record.module&&r.priority<=record.priority))if(!same(peer.working.id,record.working.id)&&similar(record.module,record.working,peer.working,clients)&&!warnings.some(w=>w.key===peer.key))warnings.push({ref:peer.ref,key:peer.key,reason:'Semelhança na cópia de trabalho após conferência.'});
+      for(const existing of this.destination[record.module])if(!same(existing.id,record.working.id)&&similar(record.module,record.working,existing,clients)&&!warnings.some(w=>same(w.id,existing.id)))warnings.push({id:existing.id,reason:'Semelhança com o destino após conferência.'});
+      return warnings;
+    }
+    status(record,visiting=new Set()){
+      if(record.hard.length)return 'conflito';
+      const decision=this.decisions[record.key]||{};
+      if(decision.deleted)return 'excluido_logicamente';
+      if(decision.pending||decision.protectedRequest)return 'pendente';
+      if(record.caseId&&!decision.caseReviewed)return 'pendente';
+      if(this.warnings(record).length&&!decision.legitimate)return 'pendente';
+      if(record.policyHold&&!decision.accepted)return 'pendente';
+      if(record.module!=='clientes'&&record.working.clienteId!=null&&record.working.clienteId!==''){
+        const parents=this.records.filter(r=>r.module==='clientes'&&same(r.original.id,record.working.clienteId));
+        if(parents.length){if(parents.every(p=>{if(visiting.has(p.key))return true;const next=new Set(visiting);next.add(p.key);return !['independente','confirmado','ja_existente'].includes(this.status(p,next));}))return 'dependencia_pendente';}
+        else if(!this.destination.clientes.some(c=>same(c.id,record.working.clienteId)))return 'dependencia_pendente';
+      }
+      if(record.existing&&equal(record.existing,record.working))return 'ja_existente';
+      return decision.accepted?'confirmado':'independente';
+    }
+    preview(){
+      fail(this.sourcesReady,'Fontes não validadas.');
+      return this.records.map(r=>({key:r.key,ref:r.ref,module:r.module,source:r.source,status:this.status(r),hard:clone(r.hard),warnings:this.warnings(r),caseId:r.caseId,policyHold:r.policyHold,record:clone(r.working),originalHash:r.sourceHash,decision:clone(this.decisions[r.key]||{}),impact:this.impact(r.key)}));
+    }
+    async decide(key,action,{confirmed=false,reason='',operator='',patch={},caseReviewed=false}={}){
+      fail(!this.busy,'Há uma operação em andamento.');this.assertBaseline();const row=this.record(key);
+      fail(['confirmar','editar','excluir','restaurar','duplicidade_legitima','pendente'].includes(action),'Decisão desconhecida.');
+      fail(confirmed&&reason.trim().length>=10&&reason.trim().length<=2000&&operator.trim().length>=2,'Exija confirmação explícita, identificação da operadora e justificativa de pelo menos 10 caracteres.');
+      fail(!row.hard.length||action==='pendente','Conflito de ID não pode ser liberado na conferência.');
+      if(row.caseId&&action!=='pendente')fail(caseReviewed,'Confirme a revisão específica deste caso.');
+      const before=clone(this.decisions[key]||{sourceHash:row.sourceHash,patch:{}}),next={...before,sourceHash:row.sourceHash,reason:reason.trim(),operator:operator.trim(),confirmed:true,caseReviewed:!!row.caseId&&(caseReviewed||before.caseReviewed||false)};
+      if(['confirmar','editar','duplicidade_legitima'].includes(action)){fail(!before.deleted,'Restaure a exclusão lógica antes de confirmar.');next.protectedRequest=false;}
+      let working=clone(row.working);
+      if(action==='editar'){
+        fail(plain(patch)&&Object.keys(patch).length,'Informe a correção proposta.');
+        for(const [field,value]of Object.entries(patch))fail(EDITABLE[row.module].includes(field)&&typeof value==='string','IDs, vínculos, parcelas, valores, pagamentos e comprovantes não podem ser reescritos.');
+        working={...working,...clone(patch)};validateRecord(row.module,working);next.patch={...(before.patch||{}),...clone(patch)};next.accepted=true;next.pending=false;next.legitimate=false;
+      }
+      if(action==='confirmar'){next.accepted=true;next.pending=false;}
+      if(action==='duplicidade_legitima'){
+        fail(this.warnings(row).length>0,'Este registro não possui uma possível duplicidade para confirmar.');
+        next.accepted=true;next.pending=false;next.legitimate=true;
+      }
+      if(action==='pendente'){next.accepted=false;next.pending=true;}
+      if(action==='excluir'){
+        const protection=this.impact(key).financial;
+        if(protection.protected){next.protectedRequest=true;next.pending=true;next.accepted=false;next.deleted=false;}
+        else{next.deleted=true;next.accepted=false;next.pending=false;next.excludedAt=this.now();}
+      }
+      if(action==='restaurar'){fail(before.deleted,'Registro não está excluído logicamente.');next.deleted=false;next.pending=true;next.accepted=false;next.restoredAt=this.now();}
+      this.validateDecision(next,row.module);
+      this.busy=true;
+      try{
+        const event={sequence:this.events.length+1,at:this.now(),key,ref:row.ref,module:row.module,action,operator:next.operator,reason:next.reason,confirmed:true,previous:this.events.at(-1)?.hash||'',before,after:clone(next),financialProtected:this.impact(key).financial.protected};
+        event.hash=await sha256(canonical(event));this.assertBaseline();this.events.push(event);this.decisions[key]=next;row.working=working;this.plan=null;this.planVerified=false;return clone(next);
+      }finally{this.busy=false;}
+    }
+    async exportReview(){
+      fail(this.sourcesReady,'Carregue as fontes primeiro.');
+      return seal('otica.conferencia.v1',{origin:this.origin,path:this.path,manifestHash:this.policy.manifest.sha256,sourceHashes:this.policy.sources.map(s=>({id:s.id,sha256:s.sha256})),events:clone(this.events),decisions:clone(this.decisions),exportedAt:this.now()});
+    }
+    async importReview(text){
+      this.assertBaseline();fail(this.sourcesReady,'Valide as fontes antes da conferência arquivada.');
+      const e=await unseal(text,'otica.conferencia.v1');
+      fail(e.payload.origin===this.origin&&e.payload.path===this.path&&e.payload.manifestHash===this.policy.manifest.sha256,'Conferência pertence a outras fontes ou endereço.');
+      const ledger={format:'otica.review.v1',records:{},events:e.payload.events,decisions:e.payload.decisions};await this.validateLedger(ledger);
+      fail(this.events.every((event,index)=>equal(event,ledger.events[index])),'Arquivo de conferência anterior ou divergente; não substituir decisões recentes.');
+      for(const [key,decision]of Object.entries(ledger.decisions)){const r=this.record(key);fail(decision.sourceHash===r.sourceHash,'Versão de registro diferente.');this.validateDecision(decision,r.module);if(decision.caseReviewed)fail(r.caseId,'Caso de revisão incompatível.');validateRecord(r.module,{...r.original,...clone(decision.patch||{})});}
+      this.events=clone(ledger.events);this.decisions=clone(ledger.decisions);
+      this.records.forEach(r=>{r.working={...clone(r.owned?r.existing:r.original),...clone(this.decisions[r.key]?.patch||{})};});this.plan=null;this.planVerified=false;return this.preview();
+    }
+    async buildPlan(keys,{baseConfirmed=false}={}){
+      this.assertBaseline();fail(this.sourcesReady&&baseConfirmed,'Confirme a base de recuperação e confira a prévia.');
+      fail(Array.isArray(keys)&&new Set(keys).size===keys.length,'Seleção repetida ou inválida.');
+      const decisionVersion=canonical({decisions:this.decisions,events:this.events});
+      const chosen=keys.map(k=>this.record(k)),after=clone(this.destination),ledger=clone(this.ledger);
+      for(const r of chosen)fail(['independente','confirmado','ja_existente'].includes(this.status(r)),'Há registro pendente, excluído ou conflitante na seleção: '+r.ref);
+      for(const r of chosen){
+        if(r.module!=='clientes'&&r.working.clienteId!=null&&r.working.clienteId!==''&&!this.destination.clientes.some(c=>same(c.id,r.working.clienteId)))fail(chosen.some(p=>p.module==='clientes'&&same(p.working.id,r.working.clienteId)),'Selecione também o cliente vinculado a '+r.ref);
+        const matches=after[r.module].filter(x=>same(x.id,r.working.id));
+        if(matches.length){
+          fail(matches.length===1,'ID duplicado no plano.');
+          if(!equal(matches[0],r.working)){
+            fail(r.existing&&equal(matches[0],r.existing)&&(r.owned||equal(r.existing,r.original))&&this.decisions[r.key]?.accepted,'Sobrescrita de registro conflitante bloqueada.');
+            after[r.module]=after[r.module].map(x=>same(x.id,r.working.id)?clone(r.working):x);
+          }
+        }else after[r.module].push(clone(r.working));
+      }
+      for(const module of MODULES)unique(after[module],module);
+      for(const r of chosen)for(const existing of this.destination[r.module])if(!same(existing.id,r.working.id)&&similar(r.module,r.working,existing,after.clientes))fail(this.decisions[r.key]?.legitimate,'Possível duplicidade com o destino exige confirmação explícita.');
+      for(let i=0;i<chosen.length;i++)for(let j=i+1;j<chosen.length;j++){
+        const a=chosen[i],b=chosen[j];if(a.module!==b.module||same(a.working.id,b.working.id))continue;
+        if(similar(a.module,a.working,b.working,after.clientes))fail(this.decisions[a.key]?.legitimate||this.decisions[b.key]?.legitimate,'Duas operações semelhantes ainda não foram confirmadas como distintas.');
+      }
+      ledger.events=clone(this.events);ledger.decisions=clone(this.decisions);
+      for(const r of chosen)ledger.records[r.key]={module:r.module,id:r.working.id,sourceHash:r.sourceHash,afterHash:await sha256(canonical(r.working))};
+      const updates={};for(const module of MODULES)if(!equal(after[module],this.destination[module]))updates['otica_'+module]=JSON.stringify(after[module]);
+      if(!equal(ledger,this.ledger))updates[LEDGER]=JSON.stringify(ledger);
+      const plan={id:globalThis.crypto.randomUUID(),origin:this.origin,path:this.path,createdAt:this.now(),backup:clone(this.backup),selected:chosen.map(r=>({key:r.key,ref:r.ref,module:r.module,id:r.working.id,sourceHash:r.sourceHash})),updates,summary:Object.fromEntries(MODULES.map(m=>[m,{before:this.destination[m].length,after:after[m].length,selected:chosen.filter(r=>r.module===m).length}]))};
+      const sealed=await seal('otica.plano.v1',plan);this.assertBaseline();fail(decisionVersion===canonical({decisions:this.decisions,events:this.events}),'A conferência mudou; gere novo plano.');this.plan=sealed;this.planVerified=false;return clone(this.plan);
+    }
+    async verifyPlan(text){const e=await validatePlan(text,this.origin,this.path);fail(this.plan&&equal(e,this.plan),'Arquivo diferente do plano recém-exportado.');this.assertBaseline();this.planVerified=true;return true;}
+    async apply({confirmed=false,phrase='',operator=''}={}){
+      fail(!TABLET_READ_ONLY,'Importação desativada na edição de conferência para tablet.');
+      fail(!this.busy,'Operação em andamento.');fail(this.plan&&this.planVerified,'Exporte e confira o plano de recuperação primeiro.');
+      fail(confirmed&&operator.trim().length>=2&&phrase==='RECUPERAR '+this.plan.payload.id.slice(0,8),'Confirmação explícita da recuperação ausente.');
+      this.assertBaseline();this.busy=true;
+      try{return await applyPlan(this.storage,this.plan,{origin:this.origin,path:this.path});}
+      finally{this.busy=false;this.backupVerified=false;}
+    }
+  }
+  async function validatePlan(value,origin,path){
+    const e=await unseal(value,'otica.plano.v1'),p=e.payload;
+    fail(p.origin===origin&&p.path===path&&typeof p.id==='string'&&plain(p.updates)&&Array.isArray(p.selected),'Plano de outro endereço ou inválido.');
+    p.backup=await unseal(p.backup,'otica.snapshot.v1');checkSnapshot(p.backup.payload.snapshot,origin,path);
+    fail(!p.backup.payload.snapshot.entries[JOURNAL].present,'Plano iniciou com transação pendente.');
+    for(const [key,raw]of Object.entries(p.updates)){
+      fail([...MODULES.map(m=>'otica_'+m),LEDGER].includes(key)&&typeof raw==='string','Plano tenta alterar chave não autorizada.');
+      if(key!==LEDGER){const m=key.slice(6),rows=JSON.parse(raw);unique(rows,m);rows.forEach(r=>validateRecord(m,r));
+        const before=p.backup.payload.snapshot.entries[key],old=before.present?JSON.parse(before.raw):[];
+        fail(old.every(r=>rows.some(x=>same(x.id,r.id))),'Plano remove registros operacionais.');
+      }else{const ledger=JSON.parse(raw);fail(ledger.format==='otica.review.v1','Auditoria do plano inválida.');}
+    }
+    return e;
+  }
+  function expectedSnapshot(plan,withJournal=false){
+    const snapshot=clone(plan.payload.backup.payload.snapshot);
+    for(const [key,raw]of Object.entries(plan.payload.updates))snapshot.entries[key]={present:true,raw};
+    if(withJournal)snapshot.entries[JOURNAL]={present:true,raw:journalText(plan)};
+    return snapshot;
+  }
+  function journalText(plan){return JSON.stringify({format:'otica.transacao.v1',id:plan.payload.id,planHash:plan.sha256,backupHash:plan.payload.backup.sha256,origin:plan.payload.origin,path:plan.payload.path,keys:Object.keys(plan.payload.updates)});}
+  function assertStorage(storage,snapshot){fail(equal(capture(storage,snapshot.origin,snapshot.path,Object.keys(snapshot.entries)),snapshot),'O destino sofreu alteração concorrente; interrompa e confira o backup.');}
+  async function applyPlan(storage,value,{origin,path}){
+    const plan=await validatePlan(value,origin,path),before=plan.payload.backup.payload.snapshot;
+    assertStorage(storage,before);const keys=Object.keys(plan.payload.updates);
+    if(!keys.length)return {status:'sem_alteracoes',id:plan.payload.id};
+    let expected=clone(before),started=false;
+    try{
+      const journal=journalText(plan);storage.setItem(JOURNAL,journal);started=true;expected.entries[JOURNAL]={present:true,raw:journal};assertStorage(storage,expected);
+      for(const key of keys){assertStorage(storage,expected);storage.setItem(key,plan.payload.updates[key]);expected.entries[key]={present:true,raw:plan.payload.updates[key]};assertStorage(storage,expected);}
+      assertStorage(storage,expected);storage.removeItem(JOURNAL);assertStorage(storage,expectedSnapshot(plan));
+      return {status:'concluido',id:plan.payload.id,verified:true,keys};
+    }catch(error){return {status:started?'falha_parcial':'falha_antes_da_gravacao',id:plan.payload.id,message:error.message,recoveryRequired:started};}
+  }
+  async function verifyApplied(storage,value,{origin,path}){
+    const plan=await validatePlan(value,origin,path);assertStorage(storage,expectedSnapshot(plan));return {verified:true,id:plan.payload.id,summary:plan.payload.summary};
+  }
+  async function rollback(storage,value,backupValue,{origin,path,confirmed=false,phrase=''}){
+    fail(!TABLET_READ_ONLY,'Reversão desativada na edição de conferência para tablet.');
+    const plan=await validatePlan(value,origin,path),backup=await unseal(backupValue,'otica.snapshot.v1');
+    fail(equal(plan.payload.backup,backup),'Backup bruto e plano não correspondem.');
+    fail(confirmed&&phrase==='REVERTER '+plan.payload.id.slice(0,8),'Confirmação explícita de reversão ausente.');
+    const before=backup.payload.snapshot,after=expectedSnapshot(plan),current=capture(storage,origin,path,Object.keys(before.entries));
+    const journal=current.entries[JOURNAL];
+    fail(!journal.present||journal.raw===journalText(plan),'Existe transação de outro plano. Não sobrescrever.');
+    const touched=new Set(Object.keys(plan.payload.updates));
+    for(const key of Object.keys(current.entries)){
+      if(key===JOURNAL)continue;
+      if(touched.has(key))fail(equal(current.entries[key],before.entries[key])||equal(current.entries[key],after.entries[key]),'O registro mudou após a importação. Reversão automática bloqueada.');
+      else fail(equal(current.entries[key],before.entries[key]),'Outra chave mudou; preserve o estado atual e solicite conferência.');
+    }
+    let expected=clone(current);
+    try{
+      for(const key of touched){assertStorage(storage,expected);const old=before.entries[key];if(old.present)storage.setItem(key,old.raw);else storage.removeItem(key);expected.entries[key]=clone(old);assertStorage(storage,expected);}
+      assertStorage(storage,expected);if(expected.entries[JOURNAL].present)storage.removeItem(JOURNAL);assertStorage(storage,before);
+      return {status:'revertido',verified:true,id:plan.payload.id};
+    }catch(error){return {status:'reversao_parcial',id:plan.payload.id,message:error.message,recoveryRequired:true};}
+  }
+  return {Session,MODULES,KNOWN,JOURNAL,LEDGER,EDITABLE,canonical,clone,sha256,seal,unseal,capture,validateRecord,unique,similar,validatePlan,verifyApplied,rollback};
+});
+
+;globalThis.OticaRecuperacaoPolitica={"version":1,"origin":"https://22interliga.github.io","path":"/otica-lclasss/","manifest":{"name":"MANIFESTO-SHA256.json","sha256":"582561c0a5704046d462e1fdb75a67069781fc3cbd3e6c451c56f2406502c903"},"sources":[{"id":"tablet","prefix":"T","name":"origem-tablet-original.json","sha256":"4950f3628a3db4dec8d585b8e3dac7c93bee69968b24e159e1b482f138d4289d","counts":{"clientes":28,"vendas":14,"crediario":8,"agenda":1},"holds":{"clientes":[0,8,17],"vendas":[9],"crediario":[2,3,4,5,6],"agenda":[]}},{"id":"html","prefix":"H","name":"recuperacao-html-clientes-vendas.json","sha256":"e3bf7dafef0888b6e2d56519370bca5554168150e5b11f72d197a9aeaedb8194","counts":{"clientes":13,"vendas":5},"holds":{"clientes":[0,1,2,3,4,5,6,7,8,9,10,11,12],"vendas":[0,1,2,3,4]}}],"cases":[{"id":"caso-operadora","label":"Caso específico da operadora — revisão pendente","keys":["tablet:clientes:8","html:clientes:8","tablet:crediario:2"]}]};
+(function(root){
+  'use strict';
+  const C=root.OticaRecuperacaoCore;
+  let active=false;
+  root.OticaRecuperacaoAssistida={iniciar(policy=root.OticaRecuperacaoPolitica,{somenteConferencia=false,modoTablet=false}={}){
+    if(active)throw new Error('A ferramenta já está aberta.');
+    const session=new C.Session({storage:root.localStorage,origin:location.origin,path:location.pathname,policy});
+    active=true;
+    const host=document.createElement('div');document.documentElement.append(host);
+    const shadow=host.attachShadow({mode:'closed'});
+    const style=document.createElement('style');style.textContent=':host{all:initial} .painel{position:fixed;inset:0;z-index:2147483647;background:#f5f6f8;color:#182331;font:16px system-ui;overflow:auto;padding:24px;box-sizing:border-box} button,input,select,textarea{font:inherit;margin:5px;padding:8px;max-width:95%} button{cursor:pointer} button:disabled{opacity:.5;cursor:wait} section{background:white;border:1px solid #bbb;padding:14px;margin:16px 0} pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef1f4;padding:12px} label{display:block} .linha{border-bottom:1px solid #ddd;padding:8px} .aviso{background:#fff0bf;padding:12px} textarea{width:90%;min-height:65px}';shadow.append(style);
+    style.textContent+=' *{box-sizing:border-box} button,input:not([type=checkbox]),select,summary{min-height:48px} button{touch-action:manipulation;white-space:normal} input[type=checkbox]{width:26px;height:26px;vertical-align:middle;flex-shrink:0} label{padding:6px 0;line-height:1.6} summary{cursor:pointer;padding:12px} dd{margin:4px 0 12px;overflow-wrap:anywhere} .passos{position:sticky;top:-24px;background:#f5f6f8;z-index:2;display:flex;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #bbb} .passos button{flex:1;min-width:140px} .tabela-scroll{overflow-x:auto;max-width:100%} th,td{text-align:left;padding:10px;border-bottom:1px solid #ccc} @media(max-width:900px){.painel{padding:12px} .passos{top:-12px} section{padding:10px} button{min-height:48px} h1{font-size:24px} input:not([type=checkbox]),textarea,select{width:100%;max-width:100%;margin-left:0} .linha>button{width:100%;margin-left:0} .passos button{min-width:120px} .linha label{display:flex;gap:8px;align-items:center}}';
+    const panel=el('div',null,shadow);panel.className='painel';
+    el('h1','Conferência de Dados Recuperados — uso local',panel);
+    el('p','Nenhuma operação foi executada ao abrir. Não use durante atendimento ou em outra aba. Os originais permanecem intactos. Não há sincronização com tablet ou outros dispositivos.',panel);
+    const message=el('pre','Aguardando exportação do backup bruto.',panel);message.setAttribute('role','status');
+    if(somenteConferencia)el('p',modoTablet?'CONFERÊNCIA NO TABLET: somente leitura dos registros operacionais. Backup obrigatório antes da conferência. Importação e reversão estão bloqueadas nesta página.':'CÓPIA LOCAL: conferência e preparação apenas. Este armazenamento não é o do site publicado. Importação e reversão estão bloqueadas neste ambiente.',panel).className='aviso';
+    let running=false,lastPlan=null,selected=new Set(),rows=[],focusKey=null,storageTouched=false;
+    const names={clientes:'Clientes',vendas:'Vendas',crediario:'Crediários',agenda:'Agenda',receitas:'Receitas',estoque:'Estoque',independente:'Disponível para conferência',confirmado:'Confirmado',ja_existente:'Já existe no destino',pendente:'Pendente de análise',dependencia_pendente:'Cliente vinculado pendente',conflito:'Conflito bloqueado',excluido_logicamente:'Exclusão lógica',todos:'Todos'};
+    const fieldNames={nome:'Nome',cpf:'CPF',rg:'RG',dataNascimento:'Nascimento',telefone:'Telefone',celular:'Celular',rua:'Rua',numero:'Número',complemento:'Complemento',bairro:'Bairro',cidade:'Cidade',estado:'Estado',cep:'CEP',referencia:'Referência',mae:'Mãe',pai:'Pai',status:'Situação',descricao:'Descrição',produto:'Produto',obs:'Observações',dataEntrega:'Entrega',nomeLivre:'Nome do agendamento',data:'Data',horario:'Horário',tipoExame:'Tipo de exame',profissional:'Profissional'};
+    const controls=[];
+    function el(tag,text,parent){const n=document.createElement(tag);if(text!==null)n.textContent=text;if(parent)parent.append(n);return n;}
+    function input(label,type,parent){const l=el('label',label,parent),n=el('input',null,l);n.type=type;controls.push(n);return n;}
+    function check(label,parent){return input(label,'checkbox',parent);}
+    function area(label,parent){const l=el('label',label,parent),n=el('textarea',null,l);controls.push(n);return n;}
+    function download(name,value){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=el('a',null,shadow);a.href=url;a.download=name;a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+    function button(label,parent,fn){const b=el('button',label,parent);b.type='button';controls.push(b);b.addEventListener('click',()=>run(fn));return b;}
+    async function run(fn){if(running)return;running=true;message.textContent='Processando a operação…';controls.forEach(n=>n.disabled=true);try{await fn();if(message.textContent==='Processando a operação…')message.textContent='Operação concluída.';}catch(e){message.textContent='Operação bloqueada: '+e.message;}finally{running=false;controls.forEach(n=>n.disabled=false);}}
+    function notify(text){message.textContent=text;}
+    function files(label,parent,multiple=false){const n=input(label,'file',parent);n.accept='.json';n.multiple=multiple;return n;}
+    async function read(n){if(n.files.length!==1)throw new Error('Selecione um arquivo.');return n.files[0].text();}
+    const steps=el('nav',null,panel);steps.className='passos';steps.setAttribute('aria-label','Etapas da conferência');
+    for(const [label,target]of [['1. Backup','etapa-backup'],['2. Comparar','etapa-fontes'],['3. Conferir','etapa-conferencia'],['4. Salvar andamento','etapa-andamento']])button(label,steps,async()=>shadow.getElementById(target).scrollIntoView({block:'start'}));
+    const backupSection=el('section',null,panel);el('h2','1. Backup bruto obrigatório',backupSection);
+    backupSection.id='etapa-backup';
+    el('p','Preserva os textos exatos de todas as chaves otica_* presentes e a ausência das chaves conhecidas. O arquivo pode conter dados e credenciais: guarde em pasta privada, fora do GitHub.',backupSection);
+    button('Exportar backup bruto privado',backupSection,async()=>{const b=await session.exportBackup();selected.clear();rows=[];list.replaceChildren();detail.replaceChildren();download('backup-bruto-privado-'+Date.now()+'.json',b);notify('Backup exportado. Confira o download e selecione o mesmo arquivo abaixo.');});
+    const backupFile=files('Backup recém-baixado:',backupSection);
+    button('Conferir backup salvo',backupSection,async()=>{await session.verifyBackup(await read(backupFile));notify('Backup conferido. Nenhum dado alterado.');});
+    const sourceSection=el('section',null,panel);el('h2','2. Validar fontes privadas',sourceSection);
+    sourceSection.id='etapa-fontes';
+    el('p','Selecione MANIFESTO-SHA256.json, origem-tablet-original.json e recuperacao-html-clientes-vendas.json da pasta privada. Os hashes aprovados e a estrutura serão conferidos antes da prévia.',sourceSection);
+    const sourceFiles=files('Três arquivos privados:',sourceSection,true);
+    const comparison=el('div',null,sourceSection),compared=check('Conferi as diferenças entre os dados atuais e o backup anterior.',sourceSection);let comparisonReady=false;
+    button('Validar e preparar prévia',sourceSection,async()=>{comparisonReady=false;compared.checked=false;const texts={};for(const f of sourceFiles.files){if(Object.hasOwn(texts,f.name))throw new Error('Nomes repetidos.');texts[f.name]=await f.text();}await session.loadFiles(texts);selected.clear();refresh();comparison.replaceChildren();const result=session.compareSource();
+      el('p',result.diferencas?'Há diferenças em relação ao backup anterior':'Conteúdo das coleções comparadas igual ao backup anterior',comparison).style.fontWeight='bold';
+      const wrap=el('div',null,comparison);wrap.className='tabela-scroll';const table=el('table',null,wrap),tr=el('tr',null,table);for(const title of ['Módulo','Anterior','Atual','Resultado'])el('th',title,tr);
+      for(const [module,data]of Object.entries(result.modules)){const line=el('tr',null,table);for(const value of [names[module]||module,data.anteriores??'—',data.atuais??'—',!data.disponivel?'Sem coleção anterior':data.mesmoConteudo?'Igual':'Diferente — conferir'])el('td',String(value),line);if(data.alterados?.length)el('p',(names[module]||module)+': IDs alterados '+data.alterados.map(r=>r.id+' ('+r.campos.map(f=>fieldNames[f]||f).join(', ')+')').join('; '),comparison);if(data.novos?.length)el('p',(names[module]||module)+': novos no navegador '+data.novos.join(', '),comparison);if(data.apenasNoAnterior?.length)el('p',(names[module]||module)+': somente no backup anterior '+data.apenasNoAnterior.join(', '),comparison);}
+      el('p',result.limite,comparison);comparisonReady=true;notify('Fontes validadas. Prévia apenas em memória; nada foi importado.');});
+    const review=el('section',null,panel);el('h2','3. Conferência e decisões da operadora',review);
+    review.id='etapa-conferencia';
+    el('p','A exclusão é lógica e vale somente nesta conferência: retira da seleção de recuperação, sem apagar registros operacionais já presentes. É reversível. Edições limitam-se a dados cadastrais e descritivos; IDs, vínculos, valores, parcelas, pagamentos e comprovantes ficam protegidos.',review).className='aviso';
+    const moduleFilter=el('select',null,review),statusFilter=el('select',null,review);controls.push(moduleFilter,statusFilter);
+    moduleFilter.setAttribute('aria-label','Filtrar módulo');statusFilter.setAttribute('aria-label','Filtrar situação');
+    for(const value of ['todos',...C.MODULES]){const o=el('option',names[value],moduleFilter);o.value=value;}
+    for(const value of ['todos','independente','confirmado','ja_existente','pendente','dependencia_pendente','conflito','excluido_logicamente']){const o=el('option',names[value],statusFilter);o.value=value;}
+    const caseFilter=check('Revisão específica do caso pendente',review);
+    const counts=el('p','',review),list=el('div',null,review),detail=el('section',null,review);
+    moduleFilter.onchange=statusFilter.onchange=caseFilter.onchange=()=>renderList();
+    function refresh(){rows=session.preview();selected=new Set([...selected].filter(key=>rows.some(r=>r.key===key&&eligible(r))));renderList();if(focusKey)show(focusKey);}
+    function eligible(r){return ['independente','confirmado','ja_existente'].includes(r.status);}
+    function renderList(){list.replaceChildren();counts.textContent=Object.entries(rows.reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{})).map(([status,count])=>names[status]+': '+count).join(' · ')+' | Selecionados: '+selected.size;
+      for(const r of rows.filter(r=>(moduleFilter.value==='todos'||r.module===moduleFilter.value)&&(statusFilter.value==='todos'||r.status===statusFilter.value)&&(!caseFilter.checked||r.caseId))){
+        const line=el('div',null,list);line.className='linha';const label=el('label',null,line),cb=el('input',null,label);cb.type='checkbox';cb.checked=selected.has(r.key);cb.disabled=!eligible(r);cb.onchange=()=>{if(cb.checked)selected.add(r.key);else selected.delete(r.key);counts.textContent='Selecionados: '+selected.size;};el('span',r.ref+' | '+names[r.module]+' | '+names[r.status]+' | ID '+r.record.id,label);const b=el('button','Ver registro / vínculos / decisões',line);b.type='button';b.onclick=()=>{if(!running)show(r.key);};
+      }
+    }
+    function show(key){focusKey=key;detail.replaceChildren();const r=rows.find(r=>r.key===key);if(!r)return;
+      el('h3',r.ref+' — '+names[r.status],detail);
+      const summary=el('dl',null,detail);
+      function entry(label,value){el('dt',label,summary).style.fontWeight='bold';el('dd',String(value??'—'),summary);}
+      entry('Identificador completo',r.record.id);entry('Origem',r.source==='tablet'?'Backup do tablet':'Backup HTML');
+      for(const [field,value]of Object.entries(r.record))if(fieldNames[field]&&typeof value!=='object')entry(fieldNames[field],value);
+      if(r.impact.cliente)entry('Cliente vinculado',r.impact.cliente.nome+' · ID '+r.impact.cliente.id);
+      if(r.record.total!==undefined)entry('Valor total',Number(r.record.total).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+      if(r.record.forma!==undefined||r.record.formaPagamento!==undefined)entry('Forma de pagamento',r.record.forma??r.record.formaPagamento);
+      if(r.record.qtd!==undefined||r.record.quantidade!==undefined)entry('Quantidade',r.record.qtd??r.record.quantidade);
+      entry('Vínculos do cliente',Object.entries(r.impact.links).map(([m,links])=>names[m]+': '+links.map(v=>v.id).join(', ')).join(' · '));
+      entry('Parcelas pagas protegidas',r.impact.financial.paid);entry('Comprovantes protegidos',r.impact.financial.receipts?'Sim':'Não identificados');
+      for(const c of r.impact.contratosAssociados)entry('Contrato associado',c.id+' · '+c.parcelas+' parcelas · '+c.pagas+' pagas');
+      for(const warning of r.warnings)entry('Conferir possível duplicidade',warning.reason+' Referência: '+(warning.ref??warning.id));
+      for(const conflict of r.hard)entry('Conflito que impede recuperação',conflict);
+      if(r.decision.reason)entry('Última decisão / justificativa',r.decision.operator+' · '+r.decision.reason);
+      if(Array.isArray(r.record.pagamentos)){
+        el('h4','Parcelas e pagamentos — somente consulta',detail);const wrap=el('div',null,detail);wrap.className='tabela-scroll';const table=el('table',null,wrap);table.style.cssText='width:100%;font-size:14px;border-collapse:collapse';const header=el('tr',null,table);for(const text of ['Parcela','Vencimento','Valor','Situação','Pagamento'])el('th',text,header);
+        for(const p of r.record.pagamentos){const tr=el('tr',null,table);for(const text of [p.num,p.venc,Number(p.valor).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),p.pago?'Paga · protegida':'Em aberto',p.pago?(p.dataPag+' · '+(p.forma||'')):'—'])el('td',String(text),tr);}
+      }
+      const technical=el('details',null,detail);el('summary','Todos os campos e histórico (consulta)',technical);el('pre',JSON.stringify({registro:r.record,avisos:r.warnings,conflitos:r.hard,vinculosEImpactos:r.impact,decisao:r.decision},null,2),technical);
+      el('p','Consulte os vínculos acima antes de qualquer decisão. Pagamentos ou comprovantes bloqueiam a exclusão lógica e geram uma pendência protegida. Não há exclusão em cascata.',detail);
+      const operator=input('Identificação da operadora:','text',detail),reason=area('Justificativa (mínimo 10 caracteres):',detail),confirmation=check('Confirmo explicitamente a decisão neste registro e conferi seus impactos.',detail),caseReview=r.caseId?check('Conferi especificamente o caso pendente; esta decisão não resolve outros registros do caso.',detail):null;
+      const edits=el('details',null,detail);el('summary','Propor edição cadastral ou descritiva',edits);const fields={};for(const f of C.EDITABLE[r.module]){const n=area(fieldNames[f]||f,edits);n.value=String(r.record[f]??'');fields[f]=n;}
+      async function act(action){if(modoTablet&&(!comparisonReady||!compared.checked))throw new Error('Confira e confirme a comparação do armazenamento atual com o backup anterior.');const patch={};if(action==='editar')for(const [f,n]of Object.entries(fields))if(n.value!==String(r.record[f]??''))patch[f]=n.value;await session.decide(key,action,{operator:operator.value,reason:reason.value,confirmed:confirmation.checked,caseReviewed:!!caseReview?.checked,patch});lastPlan=null;refresh();notify('Decisão registrada em memória. Exporte a conferência para preservá-la. Nenhum registro operacional foi alterado.');}
+      for(const [label,action]of [['Confirmar correto','confirmar'],['Registrar edição','editar'],['Marcar exclusão lógica','excluir'],['Desfazer exclusão lógica','restaurar'],['Confirmar duplicidade legítima','duplicidade_legitima'],['Deixar pendente','pendente']])button(label,detail,()=>act(action));
+    }
+    button('Selecionar independentes disponíveis',review,async()=>{for(const r of rows)if(r.status==='independente')selected.add(r.key);renderList();});
+    button('Limpar seleção',review,async()=>{selected.clear();renderList();});
+    const progress=el('section',null,panel);progress.id='etapa-andamento';el('h2','4. Salvar e continuar depois',progress);
+    el('p','Salve o andamento antes de sair ou alternar aplicativos. Ao voltar: novo backup, validar as fontes e abrir o arquivo de conferência salvo. Decisões não exportadas podem ser perdidas se o Android encerrar o navegador.',progress);
+    button('Exportar decisões e auditoria privadas',progress,async()=>{download('conferencia-privada-'+Date.now()+'.json',await session.exportReview());notify('Conferência exportada; mantenha junto às fontes originais privadas.');});
+    const savedReview=files('Conferência arquivada para continuar:',progress);
+    button('Validar e abrir conferência arquivada',progress,async()=>{await session.importReview(await read(savedReview));refresh();notify('Conferência aberta somente em memória. Decisões recentes divergentes não são substituídas.');});
+    const applySection=el('section',null,panel);el('h2','4. Plano seletivo — executar somente com autorização posterior',applySection);
+    applySection.hidden=modoTablet;
+    el('p','Preparar e baixar o plano não importa dados. Antes da execução, feche outras abas da Ótica e interrompa o atendimento. O navegador deve permanecer sem alterações desde o backup.',applySection);
+    const base=check('Conferi a base e os registros selecionados, inclusive os clientes vinculados.',applySection);
+    button('Preparar e baixar plano privado',applySection,async()=>{lastPlan=await session.buildPlan([...selected],{baseConfirmed:base.checked});download('plano-privado-'+lastPlan.payload.id+'.json',lastPlan);notify('Plano exportado. Resumo: '+JSON.stringify(lastPlan.payload.summary)+'\nPara execução futura: RECUPERAR '+lastPlan.payload.id.slice(0,8));});
+    const planFile=files('Plano recém-baixado:',applySection);
+    button('Conferir plano salvo',applySection,async()=>{await session.verifyPlan(await read(planFile));notify('Plano conferido. Ainda não houve importação.');});
+    const execute=check('Tenho autorização e confirmo aplicar exclusivamente o plano neste navegador.',applySection),phrase=input('Digite RECUPERAR seguido do código exibido:','text',applySection),operator=input('Operadora responsável pela execução:','text',applySection);
+    button('Executar recuperação selecionada',applySection,async()=>{if(somenteConferencia)throw new Error('Importação bloqueada na cópia local. Este ambiente permite somente preparação e conferência.');const result=await session.apply({confirmed:execute.checked,phrase:phrase.value,operator:operator.value});storageTouched=result.status==='concluido'||result.recoveryRequired;notify(JSON.stringify(result,null,2));});
+    button('Verificar resultado com o plano',applySection,async()=>{notify(JSON.stringify(await C.verifyApplied(root.localStorage,await read(planFile),{origin:session.origin,path:session.path}),null,2));});
+    const failure=el('section',null,panel);el('h2','5. Falha parcial / reversão assistida',failure);
+    failure.hidden=modoTablet;
+    el('p','Nunca repita uma importação interrompida. Preserve o estado atual em novo backup, guarde o plano e o backup anterior. A reversão exige correspondência exata e bloqueia alterações posteriores ou concorrentes.',failure);
+    const oldBackup=files('Backup bruto anterior:',failure),oldPlan=files('Plano da operação:',failure),revertCheck=check('Confirmo reverter somente as chaves desta operação neste navegador.',failure),revertPhrase=input('Digite REVERTER seguido dos 8 primeiros caracteres do ID do plano:','text',failure);
+    button('Reverter operação com conferência',failure,async()=>{if(somenteConferencia)throw new Error('Reversão bloqueada na cópia local.');const result=await C.rollback(root.localStorage,await read(oldPlan),await read(oldBackup),{origin:session.origin,path:session.path,confirmed:revertCheck.checked,phrase:revertPhrase.value});storageTouched=true;notify(JSON.stringify(result,null,2));});
+    button('Fechar ferramenta (exporte antes as decisões)',panel,async()=>{if(!root.confirm('As decisões em memória serão perdidas se não foram exportadas. Fechar?'+(storageTouched?' A aplicação será recarregada para ler o armazenamento atualizado. Em caso de falha parcial, não retome atendimento antes da verificação.':'')))return;host.remove();active=false;if(storageTouched)root.location.reload();});
+    return {fechar:()=>{throw new Error('Use o botão de fechamento para preservar as decisões.');}};
+  }};
+})(globalThis);
+
+(function(root){
+ 'use strict';
+ const KEY='otica_recuperacao_acesso_v1',ITERATIONS=210000;
+ const iniciarProtegido=root.OticaRecuperacaoAssistida.iniciar;
+ root.OticaRecuperacaoAssistida.iniciar=()=>{throw new Error('Acesso restrito. Entre pela área Administração · Recuperação.');};
+ const bytesToHex=b=>Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');
+ async function derive(password,salt){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);return bytesToHex(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:ITERATIONS},key,256)));}
+ function read(){const raw=localStorage.getItem(KEY);if(raw===null)return null;const record=JSON.parse(raw);if(record.version!==1||record.iterations!==ITERATIONS||!/^[0-9a-f]{32}$/.test(record.salt)||!/^[0-9a-f]{64}$/.test(record.hash))throw new Error('Configuração administrativa inválida. Preserve o armazenamento e solicite suporte.');return record;}
+ let dialog=null;
+ root.OticaRecuperacaoAdministrativa={abrir(){
+  if(root.OticaRecuperacaoModoTablet&&(location.origin!==root.OticaRecuperacaoPolitica.origin||location.pathname!==root.OticaRecuperacaoPolitica.path+'conferencia-tablet.html')){
+   const status=document.getElementById('status-acesso-tablet');if(status)status.textContent='Abertura bloqueada: este arquivo precisa ser disponibilizado no mesmo GitHub Pages da Ótica. Um arquivo baixado ou outro domínio não acessa os dados atuais do tablet.';return;
+  }
+  if(dialog){dialog.showModal();return;}
+  dialog=document.createElement('dialog');dialog.style.cssText='max-width:520px;width:calc(100% - 24px);max-height:90vh;overflow:auto;padding:20px;border-radius:14px;font:18px system-ui;box-sizing:border-box';
+  const add=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;dialog.append(n);return n;};
+  add('h2','Administração · Recuperação');
+  add('p','Acesso restrito neste navegador por senha administrativa local. Não é autenticação de servidor. Não há senha padrão nem recuperação automática de senha.');
+  const message=add('p',''),label=add('label','Senha administrativa (mínimo 12 caracteres):'),password=document.createElement('input');password.type='password';password.autocomplete='current-password';password.style.cssText='display:block;width:100%;min-height:48px;padding:10px;font:inherit;box-sizing:border-box';label.append(password);
+  const confirmationLabel=add('label','Repita a senha para a primeira configuração:'),confirmation=document.createElement('input');confirmation.type='password';confirmation.autocomplete='new-password';confirmation.style.cssText=password.style.cssText;confirmationLabel.append(confirmation);
+  const setupLabel=add('label',''),setup=document.createElement('input');setup.type='checkbox';setup.style.cssText='width:26px;height:26px;vertical-align:middle';setupLabel.append(setup,document.createTextNode(' Sou responsável autorizado e confirmo criar o acesso administrativo somente neste navegador.'));
+  let configured;try{configured=read();}catch(e){message.textContent=e.message;password.disabled=true;}
+  confirmationLabel.hidden=setupLabel.hidden=!!configured;
+  if(!configured)message.textContent=message.textContent||'Primeiro acesso: o responsável deve definir e guardar a senha antes de entregar a ferramenta à operadora.';
+  const open=add('button',configured?'Entrar na conferência':'Configurar acesso e entrar'),close=add('button','Cancelar');for(const button of [open,close])button.style.cssText='font:inherit;min-height:52px;padding:12px;margin:8px 4px;max-width:100%;white-space:normal';
+  open.onclick=async()=>{open.disabled=true;try{
+   let credential=read();
+   if(!credential){if(!setup.checked||password.value.length<12||password.value!==confirmation.value)throw new Error('Confirme a autorização e repita uma senha com pelo menos 12 caracteres.');const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));credential={version:1,iterations:ITERATIONS,salt,hash:await derive(password.value,salt)};if(read()!==null)throw new Error('O acesso foi configurado em outra aba. Feche e abra novamente.');localStorage.setItem(KEY,JSON.stringify(credential));}
+   else if(await derive(password.value,credential.salt)!==credential.hash)throw new Error('Senha incorreta. Nenhum dado foi alterado.');
+   password.value=confirmation.value='';dialog.close();dialog.remove();dialog=null;
+   const local=location.protocol==='file:'||['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+   const policy=local?{...root.OticaRecuperacaoPolitica,origin:location.origin,path:location.pathname}:root.OticaRecuperacaoPolitica;
+   iniciarProtegido(policy,{somenteConferencia:local||!!root.OticaRecuperacaoModoTablet,modoTablet:!!root.OticaRecuperacaoModoTablet});
+  }catch(e){message.textContent=e.message;}finally{open.disabled=false;}};
+  close.onclick=()=>{password.value=confirmation.value='';dialog.close();dialog.remove();dialog=null;};
+  dialog.addEventListener('cancel',event=>{event.preventDefault();close.click();});document.body.append(dialog);dialog.showModal();
+ }};
+})(globalThis);
+
+</script>
+<!-- FIM RECUPERACAO LOCAL -->
+<script src="evolucao-core.js"></script>
+<script src="evolucao-ui.js"></script>
+<script src="pupilometro-local.js"></script>
+<script src="assets/receita-core.js"></script>
+<script src="assets/comercial-core.js"></script>
+<script src="assets/documentos-locais.js"></script>
+<script src="assets/comercial-ui.js"></script>
+<script src="pwa.js"></script>
+<script src="firebase-preparacao/arquitetura.js"></script>
+<script src="seguranca-local.js"></script>
 </body>
 </html>

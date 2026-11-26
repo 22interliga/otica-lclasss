@@ -1,0 +1,62 @@
+{
+  "runtimeExternalCalls": false,
+  "paidAPIs": false,
+  "artifacts": [
+    {
+      "file": "ocr/tesseract.min.js",
+      "name": "Tesseract.js",
+      "version": "7.0.0",
+      "source": "https://github.com/naptha/tesseract.js",
+      "license": "ocr/LICENSE.md",
+      "sha256": "000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e"
+    },
+    {
+      "file": "ocr/core/package.json",
+      "name": "Tesseract.js-core",
+      "version": "7.0.0",
+      "source": "https://github.com/naptha/tesseract.js-core",
+      "license": "ocr/core/LICENSE",
+      "sha256": "554b867684677c81aa3ffab61f31e83618445fa09adee99e8fff3515cee6ca54"
+    },
+    {
+      "file": "ocr/por.traineddata",
+      "name": "tessdata_fast por",
+      "version": "arquivo fixado por hash em 26/11/2026",
+      "source": "https://github.com/tesseract-ocr/tessdata_fast",
+      "license": "ocr/LICENSE-tessdata",
+      "sha256": "c4932b937207a9514b7514d518b931a99938c02a28a5a5a553f8599ed58b7deb"
+    },
+    {
+      "file": "pdf/pdf.mjs",
+      "name": "PDF.js",
+      "version": "6.5.438",
+      "source": "https://github.com/mozilla/pdf.js",
+      "license": "pdf/LICENSE",
+      "sha256": "cbabeebf4df66f3fe736f2fa2792d332e019a878b0aa88d5e2be17d439079de4"
+    },
+    {
+      "file": "comercial/exceljs.min.js",
+      "name": "ExcelJS",
+      "version": "4.4.0",
+      "source": "https://github.com/exceljs/exceljs",
+      "license": "comercial/LICENSE-exceljs",
+      "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9"
+    },
+    {
+      "file": "comercial/jspdf.umd.min.js",
+      "name": "jsPDF",
+      "version": "4.2.0",
+      "source": "https://github.com/parallax/jsPDF",
+      "license": "comercial/LICENSE-jspdf",
+      "sha256": "db83fc811c81a9c9c218f1787ba52fc9b4d0d0fbe51184ce3a4a4f8a7ba9a091"
+    },
+    {
+      "file": "comercial/sha256.min.js",
+      "name": "js-sha256",
+      "version": "0.11.1",
+      "source": "https://github.com/emn178/js-sha256",
+      "license": "comercial/LICENSE-sha256",
+      "sha256": "4b53da9acab6a5d4010107be2025002fe1a22da64804dd5200b46895cb899219"
+    }
+  ]
+}
