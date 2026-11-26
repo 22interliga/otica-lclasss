@@ -1,0 +1,89 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PNx8aYoNUw7AGsz8veU6SpXL5QTSp735GRtiM+I7Qb0='; style-src 'sha256-ZqctM61NqimrURzYayl/Y3DUjddIx95wQwtnhCZjkg8='; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"><title>Backup privado — Ótica LClass</title><style>body{font:18px Arial,sans-serif;max-width:720px;margin:auto;padding:20px;color:#17191d;background:#f5f6f8}main{background:white;padding:20px;border:1px solid #ddd;border-radius:14px}h1{font-size:26px;color:#ba1424}button{display:block;width:100%;min-height:56px;padding:12px;background:#ba1424;color:white;border:0;border-radius:9px;font-weight:bold;font-size:18px;margin:16px 0}button:disabled{opacity:.5}label{display:flex;gap:10px;align-items:flex-start;margin:18px 0}input[type=checkbox]{width:24px;height:24px;flex:none}input[type=file]{max-width:100%}#status{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f4f6;padding:15px;border-radius:9px}.warning{color:#8b1723}</style></head><body><main><h1>Backup privado da Ótica LClass</h1><p>Recurso temporário de leitura. Não importa, corrige ou exclui registros e não envia seu arquivo a um servidor.</p><p class="warning">Use a mesma aba e o mesmo Chrome do tablet, após encerrar o atendimento e sem formulário não salvo. Não feche a aba.</p><p>O arquivo pode conter dados pessoais e credenciais. Guarde-o privadamente. Esta página não é autenticação administrativa.</p><label><input id="consent" type="checkbox">Estou no tablet operacional, sem lançamentos em andamento, e autorizo a cópia privada do armazenamento para download.</label><button id="generate" type="button" disabled>Gerar backup privado</button><label for="verify">Conferir o arquivo baixado</label><input id="verify" type="file" accept=".json,application/json"><p id="status" role="status">Nenhum dado foi lido ou exportado por esta página.</p><p>Se houver bancos, caches ou conteúdo adicional, inventário não equivale a backup do conteúdo. A atualização oficial continua pendente de validação integral.</p></main><script>/* CMD007 — captura auxiliar no próprio Chrome do tablet.
+   Leitura de armazenamento; download privado acionado por botão.
+   Não grava, não remove, não importa, não abre/cria bancos ou caches. */
+async function capture() {
+  'use strict';
+  if (location.origin !== 'https://22interliga.github.io' ||
+      !['/otica-lclasss/exportar-backup-seguro.html'].includes(location.pathname)) {
+    throw new Error('Alvo incorreto. Inspecione a aba OFICIAL da Ótica LClass no tablet.');
+  }
+  // Identificação do tablet é conferência humana: modo desktop pode mudar o User-Agent.
+  const known = [
+    'otica_clientes', 'otica_receitas', 'otica_crediario', 'otica_vendas',
+    'otica_agenda', 'otica_estoque', 'otica_operacao_v1', 'otica_comercial_v1',
+    'otica_api_key', 'otica_ai_backend_url', 'otica_recuperacao_journal_v1', 'otica_recuperacao_conferencia_v1', 'otica_recuperacao_acesso_v1'
+  ];
+  function read(storage, extra = []) {
+    const names = new Set(extra);
+    for (let i = 0; i < storage.length; i++) {const key=storage.key(i);if(storage!==localStorage||key?.startsWith('otica_'))names.add(key);}
+    return Object.fromEntries([...names].filter(k => k !== null).sort().map(k => {
+      const raw = storage.getItem(k);
+      return [k, { present: raw !== null, raw }];
+    }));
+  }
+  async function inventory() {
+    const result = {};
+    try {
+      result.indexedDB = typeof indexedDB.databases === 'function'
+        ? { inspected: true, databases: await indexedDB.databases() }
+        : { inspected: false, reason: 'API de inventário indisponível; conferir em Application.' };
+    } catch (e) { result.indexedDB = { inspected: false, reason: e.message }; }
+    try {
+      result.cacheStorage = 'caches' in globalThis
+        ? { inspected: true, names: (await caches.keys()).sort() }
+        : { inspected: false, reason: 'API indisponível; conferir em Application.' };
+    } catch (e) { result.cacheStorage = { inspected: false, reason: e.message }; }
+    try {
+      const registrations = 'serviceWorker' in navigator
+        ? await navigator.serviceWorker.getRegistrations() : [];
+      result.serviceWorkers = registrations.map(r => ({
+        scope: r.scope,
+        active: r.active?.scriptURL || null,
+        waiting: r.waiting?.scriptURL || null,
+        installing: r.installing?.scriptURL || null
+      })).sort((a, b) => a.scope.localeCompare(b.scope));
+    } catch (e) { result.serviceWorkerError = e.message; }
+    try { result.estimate = await navigator.storage?.estimate?.() || null; }
+    catch (e) { result.estimateError = e.message; }
+    result.scriptVisibleCookie = document.cookie;
+    return result;
+  }
+  const keys = read(localStorage, known);
+  const sessionEntries = read(sessionStorage);
+  const auxiliary = await inventory();
+  if (JSON.stringify(keys) !== JSON.stringify(read(localStorage, known)) ||
+      JSON.stringify(sessionEntries) !== JSON.stringify(read(sessionStorage))) {
+    throw new Error('Armazenamento mudou durante a captura. Não usar captura parcial; interrompa lançamentos e capture novamente.');
+  }
+  const data = {
+    format: 'lclass.backup.bruto.v1',
+    createdAt: new Date().toISOString(),
+    origin: location.origin,
+    path: location.pathname,
+    device: { userAgent: navigator.userAgent, platform: navigator.userAgentData?.platform || null },
+    keys,
+    sessionStorage: { scope: 'mesma aba do tablet em que o auxiliar foi aberto', entries: sessionEntries },
+    auxiliary,
+    coverage: {
+      localStorage: 'Todas as chaves otica_* desta origem, valores brutos e ausências conhecidas; outras famílias não são copiadas.',
+      sessionStorage: 'Valores brutos da aba atual; outras abas precisam de conferência separada.',
+      indexedDB: 'Somente inventário; nenhum banco foi aberto ou alterado.',
+      cacheStorage: 'Somente inventário; nenhum cache foi aberto, criado ou apagado.',
+      cookies: 'Somente document.cookie; HttpOnly deve ser conferido no DevTools se relevante.',
+      opfs: 'Não acessado: o código oficial inspecionado não usa OPFS; conferir eventual conteúdo adicional no DevTools.',
+      releaseApproved: false,
+      note: 'Inventário não equivale a cópia dos bancos/caches. Conteúdo adicional requer captura assistida antes de liberar a atualização.'
+    }
+  };
+  const text = JSON.stringify(data);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  const sha256 = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+  return JSON.stringify({ ...data, sha256 }, null, 2);
+}
+
+'use strict';
+const consent=document.getElementById('consent'),generate=document.getElementById('generate'),file=document.getElementById('verify'),status=document.getElementById('status');let baseline=null;
+consent.addEventListener('change',()=>generate.disabled=!consent.checked);
+generate.addEventListener('click',async()=>{if(!consent.checked)return;generate.disabled=true;status.textContent='Lendo sem gravar registros…';try{const text=await capture(),doc=JSON.parse(text);baseline=doc;const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='otica-tablet-bruto-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);const extra=!doc.auxiliary.indexedDB?.inspected||doc.auxiliary.indexedDB.databases.length||!doc.auxiliary.cacheStorage?.inspected||doc.auxiliary.cacheStorage.names.length||doc.auxiliary.serviceWorkers?.length||doc.auxiliary.scriptVisibleCookie;status.textContent='Arquivo privado gerado. Nenhum registro foi alterado.\n'+(extra?'Armazenamento adicional encontrado ou inventário incompleto: a cobertura ainda exige análise.\n':'Inventário sem bancos/caches/cookies adicionais; aguarda validação do responsável.\n')+'Reabra o arquivo baixado abaixo para conferir integridade.\nSHA-256: '+doc.sha256;}catch(e){status.textContent='Captura não concluída: '+e.message;}finally{generate.disabled=!consent.checked;}});
+file.addEventListener('change',async()=>{try{if(!baseline)throw new Error('Primeiro gere o backup nesta sessão.');if(file.files.length!==1)throw new Error('Selecione o JSON baixado.');const doc=JSON.parse(await file.files[0].text()),expected=doc.sha256;delete doc.sha256;const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(doc))),actual=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');if(actual!==expected||expected!==baseline.sha256)throw new Error('Hash diferente da captura recém-gerada.');const current=JSON.parse(await capture());if(JSON.stringify(current.keys)!==JSON.stringify(doc.keys)||JSON.stringify(current.sessionStorage)!==JSON.stringify(doc.sessionStorage))throw new Error('Armazenamento mudou; gere outra captura antes de atualizar.');status.textContent='Arquivo reaberto: hash e valores brutos conferem.\nNão autoriza implantação automaticamente: encaminhe privadamente para conferir a cobertura.\nSHA-256: '+expected;}catch(e){status.textContent='Verificação não aprovada: '+e.message;}});
+</script></body></html>
