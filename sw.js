@@ -1,6 +1,6 @@
 'use strict';
 // Cache fechado: apenas arquivos estáticos enumerados. Nunca JSON, fotos de clientes, APIs ou backups.
-const CACHE='otica-lclass-static-cmd001-fc2b92c2e5ff';
+const CACHE='otica-lclass-static-pwa-install-20261126';
 const FILES=['./','./index.html','./logo-lclass-original.jpeg','./manifest.webmanifest','./assets/logo-192.png','./assets/logo-512.png','./assets/logo-180.png','./assets/logo-32.png','./assets/receita-core.js','./assets/comercial-core.js','./assets/documentos-locais.js','./assets/comercial-ui.js','./evolucao.css','./evolucao-core.js','./evolucao-ui.js','./pupilometro-local.js','./pwa.js','./seguranca-local.js','./firebase-preparacao/arquitetura.js'];
 const ALLOWED=new Set(FILES.map(f=>new URL(f,self.registration.scope).href));
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(f=>new Request(new URL(f,self.registration.scope),{cache:'reload'}))))));
