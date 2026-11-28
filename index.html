@@ -692,7 +692,7 @@ async function gravarRegistroConferido(modulo,registro,editarId){
     const proxima=editando?lista.map(r=>sameId(r.id,editarId)?novo:r):[...lista,novo];
     verificarIdsUnicos(proxima);save(modulo,proxima);state[modulo]=proxima;
     return true;
-  }catch(e){showToast(e.message,'error');return false;}
+  }catch(e){showToast(e.name==='QuotaExceededError'?'Armazenamento local cheio. Nada foi gravado. Preserve o documento original e o backup; não apague dados.':' '+e.message,'error');return false;}
   finally{cadastrosEmConferencia.delete(modulo);}
 }
 function analisarConciliacaoBackup(backup,destino){
@@ -1820,14 +1820,25 @@ function previewFotoDoc(inputId, previewId){
   };
   reader.readAsDataURL(file);
 }
-function lerFoto(inputId){
-  return new Promise(resolve=>{
-    const file=document.getElementById(inputId)?.files?.[0];
-    if(!file)return resolve(null);
-    const r=new FileReader();
-    r.onload=e=>resolve(e.target.result);
-    r.readAsDataURL(file);
-  });
+async function lerFoto(inputId){
+  const file=document.getElementById(inputId)?.files?.[0];
+  if(!file)return null;
+  const url=URL.createObjectURL(file);
+  try{
+    const img=new Image();
+    await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Não foi possível ler a foto do documento. Selecione outra imagem.'));img.src=url;});
+    const canvas=document.createElement('canvas');
+    const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const ctx=canvas.getContext('2d');
+    if(!ctx)throw new Error('Não foi possível preparar a foto.');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const result=canvas.toDataURL('image/jpeg',0.78);
+    if(!result.startsWith('data:image/jpeg;base64,'))throw new Error('Não foi possível compactar a foto.');
+    return result;
+  }finally{URL.revokeObjectURL(url);}
 }
 async function salvarCliente(id){
   const g=x=>document.getElementById(x)?.value?.trim()||'';
@@ -1836,8 +1847,9 @@ async function salvarCliente(id){
   if(!nome)return showToast('Nome é obrigatório','error');
   if(!tel&&!cel)return showToast('Informe pelo menos um contato','error');
   if(!rua||!num||!bairro||!cidade||!cep||!ref||!mae)return showToast('Preencha todos os campos obrigatórios','error');
-  const fotoDoc1=await lerFoto('cf_foto_doc');
-  const fotoDoc2=await lerFoto('cf_foto_doc2');
+  let fotoDoc1,fotoDoc2;
+  try{fotoDoc1=await lerFoto('cf_foto_doc');fotoDoc2=await lerFoto('cf_foto_doc2');}
+  catch(e){showToast(e.message,'error');return;}
   const editando=id!==undefined&&id!==null&&id!==0;
   const cliAnterior=editando?state.clientes.find(c=>sameId(c.id,id)):{};
   if(editando&&!cliAnterior)return showToast('Cliente não encontrado','error');
